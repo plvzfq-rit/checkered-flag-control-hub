@@ -134,7 +134,7 @@ const SessionForm: React.FC = () => {
         <Button
           variant="outline"
           onClick={() => navigate('/sessions')}
-          className="border-gray-600 text-gray-300 hover:bg-gray-800"
+          className="text-gray-800 bg-gray-100 border-gray-300 hover:bg-gray-200"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Sessions
