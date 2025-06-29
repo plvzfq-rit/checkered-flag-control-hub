@@ -22,6 +22,8 @@ interface UserProfile {
   created_at: string;
 }
 
+type UserRole = 'driver' | 'race_engineer' | 'team_principal';
+
 const UserManagement: React.FC = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
@@ -32,7 +34,7 @@ const UserManagement: React.FC = () => {
   const [formData, setFormData] = useState({
     email: '',
     full_name: '',
-    role: 'driver' as const,
+    role: 'driver',
     team_name: '',
     car_number: ''
   });
@@ -70,7 +72,7 @@ const UserManagement: React.FC = () => {
     try {
       const userData = {
         full_name: formData.full_name,
-        role: formData.role,
+        role: formData.role as "team_principal" | "race_engineer" | "driver",
         team_name: formData.team_name || null,
         car_number: formData.car_number ? parseInt(formData.car_number) : null
       };

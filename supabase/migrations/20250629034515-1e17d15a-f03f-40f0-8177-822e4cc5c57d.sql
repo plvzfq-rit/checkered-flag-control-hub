@@ -139,7 +139,7 @@ BEGIN
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', 'New User'),
-    'driver'::user_role
+    'driver'::public.user_role
   );
   RETURN NEW;
 END;
@@ -183,3 +183,7 @@ CREATE TRIGGER audit_race_sessions_trigger
 CREATE TRIGGER audit_pit_stops_trigger
   AFTER INSERT OR UPDATE OR DELETE ON public.pit_stops
   FOR EACH ROW EXECUTE PROCEDURE public.audit_trigger();
+
+ALTER TABLE public.audit_logs
+ADD CONSTRAINT fk_audit_user
+FOREIGN KEY (user_id) REFERENCES public.profiles(id);

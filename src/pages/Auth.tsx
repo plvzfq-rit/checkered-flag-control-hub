@@ -51,6 +51,7 @@ const Auth: React.FC = () => {
     try {
       const { error } = await signUp(email, password, fullName);
       if (error) {
+        console.log(error);
         toast({
           title: "Registration Error",
           description: error.message,
