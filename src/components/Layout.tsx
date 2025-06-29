@@ -2,7 +2,6 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LogOut, User, Trophy, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -44,7 +43,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-red-900">
       <header className="bg-black/90 backdrop-blur-sm border-b border-red-800 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Trophy className="h-8 w-8 text-red-500" />
@@ -52,34 +51,30 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
             
             {profile && (
-              <div className="flex items-center space-x-4">
-                <Card className="bg-gray-800/80 border-gray-700">
-                  <CardContent className="p-3">
-                    <div className="flex items-center space-x-3">
-                      <User className="h-5 w-5 text-gray-300" />
-                      <div>
-                        <p className="text-sm font-medium text-white">{profile.full_name}</p>
-                        <div className="flex items-center space-x-2">
-                          <Badge className={getRoleBadgeColor(profile.role)}>
-                            {getRoleDisplayName(profile.role)}
-                          </Badge>
-                          {profile.team_name && (
-                            <span className="text-xs text-gray-400">{profile.team_name}</span>
-                          )}
-                          {profile.car_number && (
-                            <span className="text-xs text-red-400">#{profile.car_number}</span>
-                          )}
-                        </div>
-                      </div>
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-3 bg-gray-800/60 rounded-lg px-3 py-2 border border-gray-700">
+                  <User className="h-4 w-4 text-gray-300" />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-white leading-tight">{profile.full_name}</span>
+                    <div className="flex items-center space-x-2">
+                      <Badge className={`${getRoleBadgeColor(profile.role)} text-xs px-2 py-0`}>
+                        {getRoleDisplayName(profile.role)}
+                      </Badge>
+                      {profile.team_name && (
+                        <span className="text-xs text-gray-400">{profile.team_name}</span>
+                      )}
+                      {profile.car_number && (
+                        <span className="text-xs text-red-400 font-bold">#{profile.car_number}</span>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
                 
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => navigate('/profile')}
-                  className="text-gray-800 bg-gray-100 border-gray-300 hover:bg-gray-200"
+                  className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
                 >
                   <Settings className="h-4 w-4 mr-2" />
                   Profile
@@ -89,7 +84,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   variant="outline"
                   size="sm"
                   onClick={signOut}
-                  className="border-red-600 text-red-400 hover:bg-red-900"
+                  className="border-red-600 text-red-400 hover:bg-red-900 hover:text-red-300"
                 >
                   <LogOut className="h-4 w-4 mr-2" />
                   Sign Out
