@@ -9,6 +9,12 @@ import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import Sessions from "./pages/Sessions";
+import SessionForm from "./pages/SessionForm";
+import PitStops from "./pages/PitStops";
+import UserManagement from "./pages/UserManagement";
+import AuditLogs from "./pages/AuditLogs";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +42,76 @@ const AppContent = () => {
           <ProtectedRoute>
             <Layout>
               <Dashboard />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sessions"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <Sessions />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sessions/create"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <SessionForm />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sessions/edit/:id"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <SessionForm />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/pit-stops"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <PitStops />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/users"
+        element={
+          <ProtectedRoute requiredRoles={['team_principal']}>
+            <Layout>
+              <UserManagement />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/audit"
+        element={
+          <ProtectedRoute requiredRoles={['team_principal']}>
+            <Layout>
+              <AuditLogs />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <Profile />
             </Layout>
           </ProtectedRoute>
         }
