@@ -15,6 +15,7 @@ import PitStops from "./pages/PitStops";
 import UserManagement from "./pages/UserManagement";
 import AuditLogs from "./pages/AuditLogs";
 import Profile from "./pages/Profile";
+import TeamOverview from "./pages/TeamOverview";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -82,6 +83,16 @@ const AppContent = () => {
           <ProtectedRoute>
             <Layout>
               <PitStops />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/team-overview"
+        element={
+          <ProtectedRoute requiredRoles={['race_engineer', 'team_principal']}>
+            <Layout>
+              <TeamOverview />
             </Layout>
           </ProtectedRoute>
         }

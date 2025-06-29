@@ -113,10 +113,10 @@ const Dashboard: React.FC = () => {
       });
     }
 
-    if (profile?.role === 'race_engineer') {
+    if (profile?.role === 'race_engineer' || profile?.role === 'team_principal') {
       actions.push({
         title: 'Team Overview',
-        description: 'View all driver sessions',
+        description: 'View team performance and members',
         icon: BarChart3,
         onClick: () => navigate('/team-overview'),
         color: 'bg-indigo-600 hover:bg-indigo-700',
@@ -144,7 +144,7 @@ const Dashboard: React.FC = () => {
         <Button
           onClick={() => navigate('/profile')}
           variant="outline"
-          className="border-gray-600 text-gray-300 hover:bg-gray-800"
+          className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
         >
           <Settings className="h-4 w-4 mr-2" />
           Profile Settings
@@ -153,7 +153,7 @@ const Dashboard: React.FC = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-gray-800/80 border-gray-700">
+        <Card className="bg-gray-800/80 border-gray-700 hover:bg-gray-800/90 transition-colors">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg text-white">Race Sessions</CardTitle>
@@ -166,7 +166,7 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-800/80 border-gray-700">
+        <Card className="bg-gray-800/80 border-gray-700 hover:bg-gray-800/90 transition-colors">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg text-white">Pit Stops</CardTitle>
@@ -180,7 +180,7 @@ const Dashboard: React.FC = () => {
         </Card>
 
         {(profile.role === 'team_principal' || profile.role === 'race_engineer') && (
-          <Card className="bg-gray-800/80 border-gray-700">
+          <Card className="bg-gray-800/80 border-gray-700 hover:bg-gray-800/90 transition-colors">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg text-white">Team Members</CardTitle>
@@ -230,7 +230,7 @@ const Dashboard: React.FC = () => {
         <div className="space-y-3">
           {stats.recentSessions.length > 0 ? (
             stats.recentSessions.map((session: any) => (
-              <Card key={session.id} className="bg-gray-800/80 border-gray-700">
+              <Card key={session.id} className="bg-gray-800/80 border-gray-700 hover:bg-gray-800/90 transition-colors">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
