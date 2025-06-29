@@ -266,7 +266,8 @@ const AuditLogs: React.FC = () => {
                       <TableCell className="text-white">
                         <div>
                           <div className="font-medium">
-                            {log.profiles?.full_name || 'Unknown User'}
+                            {log.profiles?.full_name || (log.action === 'INSERT' && log.table_name === 'profiles' ? 'System' : 'Unknown User')}
+
                           </div>
                           <div className="text-sm text-gray-400">
                             {log.profiles?.email}

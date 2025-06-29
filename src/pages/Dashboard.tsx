@@ -144,7 +144,7 @@ const Dashboard: React.FC = () => {
         <Button
           onClick={() => navigate('/profile')}
           variant="outline"
-          className="border-gray-600 text-gray-300 hover:bg-gray-800"
+          className="text-gray-800 bg-gray-100 border-gray-300 hover:bg-gray-200"
         >
           <Settings className="h-4 w-4 mr-2" />
           Profile Settings

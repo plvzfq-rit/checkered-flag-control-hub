@@ -48,7 +48,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Trophy className="h-8 w-8 text-red-500" />
-              <h1 className="text-2xl font-bold text-white">Checkered Flag Control Hub</h1>
+              <a href="/"><h1 className="text-2xl font-bold text-white">Checkered Flag Control Hub</h1></a>
             </div>
             
             {profile && (
@@ -79,7 +79,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   variant="outline"
                   size="sm"
                   onClick={() => navigate('/profile')}
-                  className="border-gray-600 text-gray-300 hover:bg-gray-800"
+                  className="text-gray-800 bg-gray-100 border-gray-300 hover:bg-gray-200"
                 >
                   <Settings className="h-4 w-4 mr-2" />
                   Profile
