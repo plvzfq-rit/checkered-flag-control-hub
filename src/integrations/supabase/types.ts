@@ -9,16 +9,185 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          record_id: string | null
+          table_name: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      pit_stops: {
+        Row: {
+          created_at: string
+          fuel_added: number | null
+          id: string
+          lap_number: number | null
+          pit_time: number | null
+          session_id: string | null
+          tire_change_from: string | null
+          tire_change_to: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fuel_added?: number | null
+          id?: string
+          lap_number?: number | null
+          pit_time?: number | null
+          session_id?: string | null
+          tire_change_from?: string | null
+          tire_change_to?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fuel_added?: number | null
+          id?: string
+          lap_number?: number | null
+          pit_time?: number | null
+          session_id?: string | null
+          tire_change_from?: string | null
+          tire_change_to?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pit_stops_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "race_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          car_number: number | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          team_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          car_number?: number | null
+          created_at?: string
+          email: string
+          full_name: string
+          id: string
+          role?: Database["public"]["Enums"]["user_role"]
+          team_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          car_number?: number | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          team_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      race_sessions: {
+        Row: {
+          created_at: string
+          fuel_load: number | null
+          id: string
+          lap_time: number | null
+          notes: string | null
+          sector_1: number | null
+          sector_2: number | null
+          sector_3: number | null
+          session_type: string
+          tire_compound: string | null
+          track_name: string
+          updated_at: string
+          user_id: string
+          weather_conditions: string | null
+        }
+        Insert: {
+          created_at?: string
+          fuel_load?: number | null
+          id?: string
+          lap_time?: number | null
+          notes?: string | null
+          sector_1?: number | null
+          sector_2?: number | null
+          sector_3?: number | null
+          session_type: string
+          tire_compound?: string | null
+          track_name: string
+          updated_at?: string
+          user_id: string
+          weather_conditions?: string | null
+        }
+        Update: {
+          created_at?: string
+          fuel_load?: number | null
+          id?: string
+          lap_time?: number | null
+          notes?: string | null
+          sector_1?: number | null
+          sector_2?: number | null
+          sector_3?: number | null
+          session_type?: string
+          tire_compound?: string | null
+          track_name?: string
+          updated_at?: string
+          user_id?: string
+          weather_conditions?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { user_uuid: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "team_principal" | "race_engineer" | "driver"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +302,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["team_principal", "race_engineer", "driver"],
+    },
   },
 } as const
