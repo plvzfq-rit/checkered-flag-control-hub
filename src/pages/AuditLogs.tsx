@@ -57,10 +57,10 @@ const AuditLogs: React.FC = () => {
         .order('created_at', { ascending: false })
         .limit(100);
 
-      if (filter.action) {
+      if (filter.action && filter.action !== "ALL") {
         query = query.eq('action', filter.action);
       }
-      if (filter.table_name) {
+      if (filter.table_name && filter.table_name !== "all") {
         query = query.eq('table_name', filter.table_name);
       }
 
@@ -202,7 +202,7 @@ const AuditLogs: React.FC = () => {
                   <SelectValue placeholder="All actions" />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-700 border-gray-600">
-                  <SelectItem value="">All Actions</SelectItem>
+                  <SelectItem value="ALL">All Actions</SelectItem>
                   <SelectItem value="INSERT">Insert</SelectItem>
                   <SelectItem value="UPDATE">Update</SelectItem>
                   <SelectItem value="DELETE">Delete</SelectItem>
@@ -220,7 +220,7 @@ const AuditLogs: React.FC = () => {
                   <SelectValue placeholder="All tables" />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-700 border-gray-600">
-                  <SelectItem value="">All Tables</SelectItem>
+                  <SelectItem value="all">All Tables</SelectItem>
                   <SelectItem value="profiles">Profiles</SelectItem>
                   <SelectItem value="race_sessions">Race Sessions</SelectItem>
                   <SelectItem value="pit_stops">Pit Stops</SelectItem>
