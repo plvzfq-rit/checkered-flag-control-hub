@@ -49,7 +49,7 @@ const AuditLogs: React.FC = () => {
         .from('audit_logs')
         .select(`
           *,
-          profiles (
+          profiles!audit_logs_user_id_fkey (
             full_name,
             email
           )

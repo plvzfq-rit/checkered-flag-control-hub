@@ -144,7 +144,7 @@ const Profile: React.FC = () => {
                   />
                 </div>
 
-                <div className="space-y-2">
+                {profile?.role === "driver" && <div className="space-y-2">
                   <Label htmlFor="car_number" className="text-gray-300">Car Number</Label>
                   <Input
                     id="car_number"
@@ -154,7 +154,7 @@ const Profile: React.FC = () => {
                     className="bg-gray-700 border-gray-600 text-white"
                     placeholder="33"
                   />
-                </div>
+                </div>}
               </>
             )}
 
