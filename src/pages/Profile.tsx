@@ -58,6 +58,8 @@ const Profile: React.FC = () => {
         return 'bg-blue-600 hover:bg-blue-700';
       case 'driver':
         return 'bg-green-600 hover:bg-green-700';
+      case 'administrator':
+        return 'bg-purple-600 hover:bg-purple-700';
       default:
         return 'bg-gray-600 hover:bg-gray-700';
     }
@@ -71,6 +73,8 @@ const Profile: React.FC = () => {
         return 'Race Engineer';
       case 'driver':
         return 'Driver';
+      case 'administrator':
+        return 'Administrator';
       default:
         return role;
     }
@@ -127,28 +131,32 @@ const Profile: React.FC = () => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="team_name" className="text-gray-300">Team Name</Label>
-              <Input
-                id="team_name"
-                value={formData.team_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, team_name: e.target.value }))}
-                className="bg-gray-700 border-gray-600 text-white"
-                placeholder="e.g., Red Bull Racing"
-              />
-            </div>
+            {profile.role !== 'administrator' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="team_name" className="text-gray-300">Team Name</Label>
+                  <Input
+                    id="team_name"
+                    value={formData.team_name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, team_name: e.target.value }))}
+                    className="bg-gray-700 border-gray-600 text-white"
+                    placeholder="e.g., Red Bull Racing"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="car_number" className="text-gray-300">Car Number</Label>
-              <Input
-                id="car_number"
-                type="number"
-                value={formData.car_number}
-                onChange={(e) => setFormData(prev => ({ ...prev, car_number: e.target.value }))}
-                className="bg-gray-700 border-gray-600 text-white"
-                placeholder="33"
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="car_number" className="text-gray-300">Car Number</Label>
+                  <Input
+                    id="car_number"
+                    type="number"
+                    value={formData.car_number}
+                    onChange={(e) => setFormData(prev => ({ ...prev, car_number: e.target.value }))}
+                    className="bg-gray-700 border-gray-600 text-white"
+                    placeholder="33"
+                  />
+                </div>
+              </>
+            )}
 
             <div className="flex justify-end">
               <Button

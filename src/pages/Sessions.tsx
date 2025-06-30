@@ -98,6 +98,18 @@ const Sessions: React.FC = () => {
     }
   };
 
+  const canCreateSessions = () => {
+    return profile?.role === 'team_principal' || profile?.role === 'administrator';
+  };
+
+  const canEditSessions = () => {
+    return profile?.role === 'race_engineer' || profile?.role === 'team_principal' || profile?.role === 'administrator';
+  };
+
+  const canDeleteSessions = () => {
+    return profile?.role === 'team_principal' || profile?.role === 'administrator';
+  };
+
   const getSessionTypeBadge = (type: string) => {
     const colors = {
       practice: 'bg-blue-600 hover:bg-blue-700',
@@ -137,16 +149,18 @@ const Sessions: React.FC = () => {
             Race Sessions
           </h1>
           <p className="text-gray-400 mt-2">
-            {profile?.role === 'driver' ? 'Manage your race sessions' : 'Manage all team race sessions'}
+            {profile?.role === 'driver' ? 'View your race sessions' : 'Manage team race sessions'}
           </p>
         </div>
-        <Button
-          onClick={() => navigate('/sessions/create')}
-          className="bg-green-600 hover:bg-green-700"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          New Session
-        </Button>
+        {canCreateSessions() && (
+          <Button
+            onClick={() => navigate('/sessions/create')}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            New Session
+          </Button>
+        )}
       </div>
 
       <Card className="bg-gray-800/80 border-gray-700">
@@ -158,12 +172,14 @@ const Sessions: React.FC = () => {
             <div className="p-8 text-center">
               <Flag className="h-12 w-12 text-gray-500 mx-auto mb-4" />
               <p className="text-gray-400 text-lg">No sessions found</p>
-              <Button
-                onClick={() => navigate('/sessions/create')}
-                className="mt-4 bg-green-600 hover:bg-green-700"
-              >
-                Create Your First Session
-              </Button>
+              {canCreateSessions() && (
+                <Button
+                  onClick={() => navigate('/sessions/create')}
+                  className="mt-4 bg-green-600 hover:bg-green-700"
+                >
+                  Create Your First Session
+                </Button>
+              )}
             </div>
           ) : (
             <Table>
@@ -173,11 +189,13 @@ const Sessions: React.FC = () => {
                   <TableHead className="text-gray-300">Track</TableHead>
                   <TableHead className="text-gray-300">Lap Time</TableHead>
                   <TableHead className="text-gray-300">Tires</TableHead>
-                  {(profile?.role === 'team_principal' || profile?.role === 'race_engineer') && (
+                  {(profile?.role === 'team_principal' || profile?.role === 'race_engineer' || profile?.role === 'administrator') && (
                     <TableHead className="text-gray-300">Driver</TableHead>
                   )}
                   <TableHead className="text-gray-300">Date</TableHead>
-                  <TableHead className="text-gray-300">Actions</TableHead>
+                  {(canEditSessions() || canDeleteSessions()) && (
+                    <TableHead className="text-gray-300">Actions</TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -197,7 +215,7 @@ const Sessions: React.FC = () => {
                     <TableCell className={getTireColor(session.tire_compound)}>
                       {session.tire_compound || '-'}
                     </TableCell>
-                    {(profile?.role === 'team_principal' || profile?.role === 'race_engineer') && (
+                    {(profile?.role === 'team_principal' || profile?.role === 'race_engineer' || profile?.role === 'administrator') && (
                       <TableCell className="text-gray-300">
                         <div className="flex items-center space-x-2">
                           <User className="h-4 w-4" />
@@ -211,26 +229,32 @@ const Sessions: React.FC = () => {
                     <TableCell className="text-gray-400">
                       {new Date(session.created_at).toLocaleDateString()}
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => navigate(`/sessions/edit/${session.id}`)}
-                          className="border-blue-600 text-blue-400 hover:bg-blue-900"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDelete(session.id)}
-                          className="border-red-600 text-red-400 hover:bg-red-900"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+                    {(canEditSessions() || canDeleteSessions()) && (
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          {canEditSessions() && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => navigate(`/sessions/edit/${session.id}`)}
+                              className="border-blue-600 text-blue-400 hover:bg-blue-900"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {canDeleteSessions() && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDelete(session.id)}
+                              className="border-red-600 text-red-400 hover:bg-red-900"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>

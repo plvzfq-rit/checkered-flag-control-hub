@@ -50,9 +50,9 @@ const Dashboard: React.FC = () => {
         .order('created_at', { ascending: false })
         .limit(5);
 
-      // Fetch users count (only for team principals and race engineers)
+      // Fetch users count (only for team principals, race engineers, and administrators)
       let usersCount = 0;
-      if (profile?.role === 'team_principal' || profile?.role === 'race_engineer') {
+      if (profile?.role === 'team_principal' || profile?.role === 'race_engineer' || profile?.role === 'administrator') {
         const { count } = await supabase
           .from('profiles')
           .select('*', { count: 'exact', head: true });
@@ -71,39 +71,52 @@ const Dashboard: React.FC = () => {
   };
 
   const getQuickActions = () => {
-    const actions = [
-      {
-        title: 'New Race Session',
-        description: 'Record lap times and session data',
-        icon: Plus,
-        onClick: () => navigate('/sessions/create'),
-        color: 'bg-green-600 hover:bg-green-700',
-      },
-      {
-        title: 'View Sessions',
-        description: 'Browse all your race sessions',
-        icon: Flag,
-        onClick: () => navigate('/sessions'),
-        color: 'bg-blue-600 hover:bg-blue-700',
-      },
-      {
+    const actions = [];
+
+    // Pit stops for race engineers, team principals, and administrators
+    if (['race_engineer', 'team_principal', 'administrator'].includes(profile?.role || '')) {
+      actions.push({
         title: 'Pit Stops',
         description: 'Manage pit stop data',
         icon: Clock,
         onClick: () => navigate('/pit-stops'),
         color: 'bg-orange-600 hover:bg-orange-700',
-      },
-    ];
+      });
+    }
 
-    if (profile?.role === 'team_principal') {
+    // Session creation only for team principals and administrators
+    if (['team_principal', 'administrator'].includes(profile?.role || '')) {
+      actions.push({
+        title: 'New Race Session',
+        description: 'Record lap times and session data',
+        icon: Plus,
+        onClick: () => navigate('/sessions/create'),
+        color: 'bg-green-600 hover:bg-green-700',
+      });
+    }
+
+    // View sessions for all users
+    actions.push({
+      title: 'View Sessions',
+      description: 'Browse race sessions',
+      icon: Flag,
+      onClick: () => navigate('/sessions'),
+      color: 'bg-blue-600 hover:bg-blue-700',
+    });
+
+    // User management only for administrators
+    if (profile?.role === 'administrator') {
       actions.push({
         title: 'Manage Users',
-        description: 'Add and manage team members',
+        description: 'Add and manage all users',
         icon: Users,
         onClick: () => navigate('/users'),
         color: 'bg-red-600 hover:bg-red-700',
       });
-      
+    }
+    
+    // Audit logs for team principals and administrators
+    if (['team_principal', 'administrator'].includes(profile?.role || '')) {
       actions.push({
         title: 'Audit Logs',
         description: 'View system activity logs',
@@ -113,10 +126,11 @@ const Dashboard: React.FC = () => {
       });
     }
 
-    if (profile?.role === 'race_engineer' || profile?.role === 'team_principal') {
+    // Team overview for drivers, race engineers, team principals, and administrators
+    if (['driver', 'race_engineer', 'team_principal', 'administrator'].includes(profile?.role || '')) {
       actions.push({
         title: 'Team Overview',
-        description: 'View team performance and members',
+        description: profile?.role === 'administrator' ? 'View system overview' : 'View team performance and members',
         icon: BarChart3,
         onClick: () => navigate('/team-overview'),
         color: 'bg-indigo-600 hover:bg-indigo-700',
@@ -124,6 +138,21 @@ const Dashboard: React.FC = () => {
     }
 
     return actions;
+  };
+
+  const getRoleWelcomeMessage = () => {
+    switch (profile?.role) {
+      case 'administrator':
+        return 'Managing the entire system';
+      case 'team_principal':
+        return 'Leading the team to victory';
+      case 'race_engineer':
+        return 'Optimizing performance on track';
+      case 'driver':
+        return 'Ready to hit the track';
+      default:
+        return 'Welcome to the racing platform';
+    }
   };
 
   if (!profile) return null;
@@ -136,9 +165,7 @@ const Dashboard: React.FC = () => {
             Welcome back, {profile.full_name}!
           </h1>
           <p className="text-gray-400 mt-2">
-            {profile.role === 'team_principal' && 'Leading the team to victory'}
-            {profile.role === 'race_engineer' && 'Optimizing performance on track'}
-            {profile.role === 'driver' && 'Ready to hit the track'}
+            {getRoleWelcomeMessage()}
           </p>
         </div>
         <Button
@@ -162,7 +189,9 @@ const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{stats.totalSessions}</div>
-            <p className="text-gray-400 text-sm">Total sessions recorded</p>
+            <p className="text-gray-400 text-sm">
+              {profile.role === 'administrator' ? 'Total system sessions' : 'Total sessions recorded'}
+            </p>
           </CardContent>
         </Card>
 
@@ -175,21 +204,27 @@ const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{stats.totalPitStops}</div>
-            <p className="text-gray-400 text-sm">Total pit stops logged</p>
+            <p className="text-gray-400 text-sm">
+              {profile.role === 'administrator' ? 'Total system pit stops' : 'Total pit stops logged'}
+            </p>
           </CardContent>
         </Card>
 
-        {(profile.role === 'team_principal' || profile.role === 'race_engineer') && (
+        {(profile.role === 'team_principal' || profile.role === 'race_engineer' || profile.role === 'administrator') && (
           <Card className="bg-gray-800/80 border-gray-700 hover:bg-gray-800/90 transition-colors">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg text-white">Team Members</CardTitle>
+                <CardTitle className="text-lg text-white">
+                  {profile.role === 'administrator' ? 'Total Users' : 'Team Members'}
+                </CardTitle>
                 <Users className="h-5 w-5 text-green-400" />
               </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">{stats.totalUsers}</div>
-              <p className="text-gray-400 text-sm">Active team members</p>
+              <p className="text-gray-400 text-sm">
+                {profile.role === 'administrator' ? 'Active system users' : 'Active team members'}
+              </p>
             </CardContent>
           </Card>
         )}
@@ -255,12 +290,14 @@ const Dashboard: React.FC = () => {
             <Card className="bg-gray-800/80 border-gray-700">
               <CardContent className="p-6 text-center">
                 <p className="text-gray-400">No recent sessions found</p>
-                <Button
-                  onClick={() => navigate('/sessions/create')}
-                  className="mt-4 bg-green-600 hover:bg-green-700"
-                >
-                  Create Your First Session
-                </Button>
+                {['team_principal', 'administrator'].includes(profile?.role || '') && (
+                  <Button
+                    onClick={() => navigate('/sessions/create')}
+                    className="mt-4 bg-green-600 hover:bg-green-700"
+                  >
+                    Create Your First Session
+                  </Button>
+                )}
               </CardContent>
             </Card>
           )}

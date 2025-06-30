@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,21 +41,33 @@ const TeamOverview: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (profile?.role === 'race_engineer' || profile?.role === 'team_principal') {
+    if (profile?.role && ['driver', 'race_engineer', 'team_principal', 'administrator'].includes(profile.role)) {
       fetchTeamData();
     }
   }, [profile]);
 
   const fetchTeamData = async () => {
     try {
-      // Fetch team members
-      const { data: members, error: membersError } = await supabase
-        .from('profiles')
-        .select('id, full_name, email, role, car_number, created_at')
-        .eq('team_name', profile?.team_name)
-        .order('role', { ascending: true })
-        .order('full_name', { ascending: true });
+      let membersQuery;
+      
+      if (profile?.role === 'administrator') {
+        // Administrators can see all users
+        membersQuery = supabase
+          .from('profiles')
+          .select('id, full_name, email, role, car_number, created_at')
+          .order('role', { ascending: true })
+          .order('full_name', { ascending: true });
+      } else {
+        // Others see only their team
+        membersQuery = supabase
+          .from('profiles')
+          .select('id, full_name, email, role, car_number, created_at')
+          .eq('team_name', profile?.team_name)
+          .order('role', { ascending: true })
+          .order('full_name', { ascending: true });
+      }
 
+      const { data: members, error: membersError } = await membersQuery;
       if (membersError) throw membersError;
 
       // Fetch team sessions
@@ -108,6 +119,8 @@ const TeamOverview: React.FC = () => {
         return 'bg-blue-600 hover:bg-blue-700';
       case 'driver':
         return 'bg-green-600 hover:bg-green-700';
+      case 'administrator':
+        return 'bg-purple-600 hover:bg-purple-700';
       default:
         return 'bg-gray-600 hover:bg-gray-700';
     }
@@ -121,6 +134,8 @@ const TeamOverview: React.FC = () => {
         return 'Race Engineer';
       case 'driver':
         return 'Driver';
+      case 'administrator':
+        return 'Administrator';
       default:
         return role;
     }
@@ -136,7 +151,7 @@ const TeamOverview: React.FC = () => {
     }, {} as Record<string, TeamMember[]>);
 
     // Sort roles by hierarchy
-    const roleOrder = ['team_principal', 'race_engineer', 'driver'];
+    const roleOrder = ['administrator', 'team_principal', 'race_engineer', 'driver'];
     const sortedGroups: Record<string, TeamMember[]> = {};
     roleOrder.forEach(role => {
       if (grouped[role]) {
@@ -147,13 +162,13 @@ const TeamOverview: React.FC = () => {
     return sortedGroups;
   };
 
-  if (profile?.role !== 'race_engineer' && profile?.role !== 'team_principal') {
+  if (!profile || !['driver', 'race_engineer', 'team_principal', 'administrator'].includes(profile.role)) {
     return (
       <div className="min-h-96 flex items-center justify-center">
         <div className="text-center">
           <Users className="h-16 w-16 text-gray-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-white mb-2">Access Denied</h2>
-          <p className="text-gray-400">Only Race Engineers and Team Principals can view team overview.</p>
+          <p className="text-gray-400">You don't have permission to view team overview.</p>
         </div>
       </div>
     );
@@ -168,16 +183,18 @@ const TeamOverview: React.FC = () => {
   }
 
   const groupedMembers = groupMembersByRole(teamStats.teamMembers);
+  const pageTitle = profile.role === 'administrator' ? 'System Overview' : 'Team Overview';
+  const pageSubtitle = profile.role === 'administrator' ? 'All users and system performance' : `${profile?.team_name || 'Your Team'} - Performance and member overview`;
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-white flex items-center">
           <Trophy className="h-8 w-8 mr-3 text-yellow-400" />
-          Team Overview
+          {pageTitle}
         </h1>
         <p className="text-gray-400 mt-2">
-          {profile?.team_name || 'Your Team'} - Performance and member overview
+          {pageSubtitle}
         </p>
       </div>
 
@@ -192,7 +209,7 @@ const TeamOverview: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{teamStats.totalSessions}</div>
-            <p className="text-gray-400 text-sm">Team sessions recorded</p>
+            <p className="text-gray-400 text-sm">Sessions recorded</p>
           </CardContent>
         </Card>
 
@@ -210,7 +227,7 @@ const TeamOverview: React.FC = () => {
                 : '-'
               }
             </div>
-            <p className="text-gray-400 text-sm">Team average performance</p>
+            <p className="text-gray-400 text-sm">Average performance</p>
           </CardContent>
         </Card>
 
@@ -223,7 +240,7 @@ const TeamOverview: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{teamStats.totalPitStops}</div>
-            <p className="text-gray-400 text-sm">Team pit stops logged</p>
+            <p className="text-gray-400 text-sm">Pit stops logged</p>
           </CardContent>
         </Card>
       </div>
@@ -270,9 +287,11 @@ const TeamOverview: React.FC = () => {
           <CardContent className="p-8 text-center">
             <Users className="h-12 w-12 text-gray-500 mx-auto mb-4" />
             <p className="text-gray-400 text-lg">No team members found</p>
-            <p className="text-gray-500 text-sm mt-2">
-              Make sure your team name is set correctly in your profile
-            </p>
+            {profile.role !== 'administrator' && (
+              <p className="text-gray-500 text-sm mt-2">
+                Make sure your team name is set correctly in your profile
+              </p>
+            )}
           </CardContent>
         </Card>
       )}

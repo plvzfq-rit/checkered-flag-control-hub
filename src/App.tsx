@@ -60,7 +60,7 @@ const AppContent = () => {
       <Route
         path="/sessions/create"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRoles={['team_principal', 'administrator']}>
             <Layout>
               <SessionForm />
             </Layout>
@@ -70,7 +70,7 @@ const AppContent = () => {
       <Route
         path="/sessions/edit/:id"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRoles={['race_engineer', 'team_principal', 'administrator']}>
             <Layout>
               <SessionForm />
             </Layout>
@@ -80,7 +80,7 @@ const AppContent = () => {
       <Route
         path="/pit-stops"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRoles={['race_engineer', 'team_principal', 'administrator']}>
             <Layout>
               <PitStops />
             </Layout>
@@ -90,7 +90,7 @@ const AppContent = () => {
       <Route
         path="/team-overview"
         element={
-          <ProtectedRoute requiredRoles={['race_engineer', 'team_principal']}>
+          <ProtectedRoute requiredRoles={['driver', 'race_engineer', 'team_principal', 'administrator']}>
             <Layout>
               <TeamOverview />
             </Layout>
@@ -100,7 +100,7 @@ const AppContent = () => {
       <Route
         path="/users"
         element={
-          <ProtectedRoute requiredRoles={['team_principal']}>
+          <ProtectedRoute requiredRoles={['administrator']}>
             <Layout>
               <UserManagement />
             </Layout>
@@ -110,7 +110,7 @@ const AppContent = () => {
       <Route
         path="/audit"
         element={
-          <ProtectedRoute requiredRoles={['team_principal']}>
+          <ProtectedRoute requiredRoles={['team_principal', 'administrator']}>
             <Layout>
               <AuditLogs />
             </Layout>
