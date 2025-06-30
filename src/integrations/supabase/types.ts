@@ -215,9 +215,13 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      get_user_team: {
+        Args: { user_uuid: string }
+        Returns: string
+      }
     }
     Enums: {
-      user_role: "team_principal" | "race_engineer" | "driver"
+      user_role: "team_principal" | "race_engineer" | "driver" | "administrator"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -333,7 +337,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      user_role: ["team_principal", "race_engineer", "driver"],
+      user_role: ["team_principal", "race_engineer", "driver", "administrator"],
     },
   },
 } as const
