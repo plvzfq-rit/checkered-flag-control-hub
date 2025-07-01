@@ -168,14 +168,6 @@ const Dashboard: React.FC = () => {
             {getRoleWelcomeMessage()}
           </p>
         </div>
-        <Button
-          onClick={() => navigate('/profile')}
-          variant="outline"
-          className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
-        >
-          <Settings className="h-4 w-4 mr-2" />
-          Profile Settings
-        </Button>
       </div>
 
       {/* Stats Cards */}

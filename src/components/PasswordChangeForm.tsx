@@ -38,10 +38,10 @@ const PasswordChangeForm: React.FC = () => {
       return;
     }
 
-    if (formData.newPassword.length < 6) {
+    if (formData.newPassword.length < 8) {
       toast({
         title: "Error",
-        description: "Password must be at least 6 characters long",
+        description: "Password must be at least 8 characters long",
         variant: "destructive"
       });
       return;
@@ -227,14 +227,14 @@ const PasswordChangeForm: React.FC = () => {
               {loading ? 'Updating...' : 'Update Password'}
             </Button>
             
-            <Button
+            {/* <Button
               type="button"
               variant="outline"
               onClick={handlePasswordReset}
               className="border-yellow-600 text-yellow-400 hover:bg-yellow-900"
             >
               Send Password Reset Email
-            </Button>
+            </Button> */}
           </div>
         </form>
       </CardContent>

@@ -74,7 +74,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   variant="outline"
                   size="sm"
                   onClick={() => navigate('/profile')}
-                  className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
+                  className="text-gray-800 bg-gray-100 border-gray-300 hover:bg-gray-200"
                 >
                   <Settings className="h-4 w-4 mr-2" />
                   Profile
