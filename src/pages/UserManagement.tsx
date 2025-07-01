@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -11,18 +10,19 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Users, Plus, Edit, Shield, UserPlus } from 'lucide-react';
+import TeamSelector from '@/components/TeamSelector';
+import { fetchTeamById, Team } from '@/services/teamsService';
 
 interface UserProfile {
   id: string;
   email: string;
   full_name: string;
-  role: 'team_principal' | 'race_engineer' | 'driver';
-  team_name: string | null;
+  role: 'team_principal' | 'race_engineer' | 'driver' | 'administrator';
+  team_id: string | null;
   car_number: number | null;
   created_at: string;
+  teams?: Team;
 }
-
-type UserRole = 'driver' | 'race_engineer' | 'team_principal';
 
 const UserManagement: React.FC = () => {
   const { profile } = useAuth();
@@ -35,12 +35,12 @@ const UserManagement: React.FC = () => {
     email: '',
     full_name: '',
     role: 'driver',
-    team_name: '',
+    team_id: '',
     car_number: ''
   });
 
   useEffect(() => {
-    if (profile?.role === 'team_principal') {
+    if (profile?.role === 'administrator') {
       fetchUsers();
     }
   }, [profile]);
@@ -49,7 +49,14 @@ const UserManagement: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select(`
+          *,
+          teams (
+            id,
+            name,
+            full_name
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -72,8 +79,8 @@ const UserManagement: React.FC = () => {
     try {
       const userData = {
         full_name: formData.full_name,
-        role: formData.role as "team_principal" | "race_engineer" | "driver",
-        team_name: formData.team_name || null,
+        role: formData.role as "administrator" | "team_principal" | "race_engineer" | "driver",
+        team_id: formData.team_id || null,
         car_number: formData.car_number ? parseInt(formData.car_number) : null
       };
 
@@ -90,8 +97,6 @@ const UserManagement: React.FC = () => {
           description: "User updated successfully"
         });
       } else {
-        // For new users, we would typically handle this through Supabase Auth
-        // This is a simplified version - in practice, you'd invite users via email
         toast({
           title: "Info",
           description: "User creation requires email invitation system",
@@ -104,7 +109,7 @@ const UserManagement: React.FC = () => {
         email: '',
         full_name: '',
         role: 'driver',
-        team_name: '',
+        team_id: '',
         car_number: ''
       });
       setEditingUser(null);
@@ -126,7 +131,7 @@ const UserManagement: React.FC = () => {
       email: user.email,
       full_name: user.full_name,
       role: user.role,
-      team_name: user.team_name || '',
+      team_id: user.team_id || '',
       car_number: user.car_number?.toString() || ''
     });
     setShowForm(true);
@@ -140,6 +145,8 @@ const UserManagement: React.FC = () => {
         return 'bg-blue-600 hover:bg-blue-700';
       case 'driver':
         return 'bg-green-600 hover:bg-green-700';
+      case 'administrator':
+        return 'bg-purple-600 hover:bg-purple-700';
       default:
         return 'bg-gray-600 hover:bg-gray-700';
     }
@@ -153,18 +160,20 @@ const UserManagement: React.FC = () => {
         return 'Race Engineer';
       case 'driver':
         return 'Driver';
+      case 'administrator':
+        return 'Administrator';
       default:
         return role;
     }
   };
 
-  if (profile?.role !== 'team_principal') {
+  if (profile?.role !== 'administrator') {
     return (
       <div className="min-h-96 flex items-center justify-center">
         <div className="text-center">
           <Shield className="h-16 w-16 text-gray-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-white mb-2">Access Denied</h2>
-          <p className="text-gray-400">Only Team Principals can manage users.</p>
+          <p className="text-gray-400">Only Administrators can manage users.</p>
         </div>
       </div>
     );
@@ -197,7 +206,7 @@ const UserManagement: React.FC = () => {
               email: '',
               full_name: '',
               role: 'driver',
-              team_name: '',
+              team_id: '',
               car_number: ''
             });
             setShowForm(!showForm);
@@ -250,7 +259,7 @@ const UserManagement: React.FC = () => {
                   <Label htmlFor="role" className="text-gray-300">Role</Label>
                   <Select 
                     value={formData.role} 
-                    onValueChange={(value: 'team_principal' | 'race_engineer' | 'driver') => 
+                    onValueChange={(value: 'administrator' | 'team_principal' | 'race_engineer' | 'driver') => 
                       setFormData(prev => ({ ...prev, role: value }))
                     }
                   >
@@ -261,20 +270,18 @@ const UserManagement: React.FC = () => {
                       <SelectItem value="driver">Driver</SelectItem>
                       <SelectItem value="race_engineer">Race Engineer</SelectItem>
                       <SelectItem value="team_principal">Team Principal</SelectItem>
+                      <SelectItem value="administrator">Administrator</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="team_name" className="text-gray-300">Team Name</Label>
-                  <Input
-                    id="team_name"
-                    value={formData.team_name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, team_name: e.target.value }))}
-                    className="bg-gray-700 border-gray-600 text-white"
-                    placeholder="Red Bull Racing"
-                  />
-                </div>
+                <TeamSelector
+                  value={formData.team_id}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, team_id: value }))}
+                  label="Team"
+                  placeholder="Select a team"
+                  displayFullName={true}
+                />
 
                 <div className="space-y-2">
                   <Label htmlFor="car_number" className="text-gray-300">Car Number</Label>
@@ -351,7 +358,7 @@ const UserManagement: React.FC = () => {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-gray-300">
-                      {user.team_name || '-'}
+                      {user.teams?.name || '-'}
                     </TableCell>
                     <TableCell className="text-red-400">
                       {user.car_number ? `#${user.car_number}` : '-'}

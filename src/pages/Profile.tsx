@@ -7,7 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { User, Save, Key, Trophy } from 'lucide-react';
+import { User, Save, Trophy } from 'lucide-react';
+import TeamSelector from '@/components/TeamSelector';
+import PasswordChangeForm from '@/components/PasswordChangeForm';
 
 const Profile: React.FC = () => {
   const { profile, updateProfile } = useAuth();
@@ -15,7 +17,7 @@ const Profile: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: profile?.full_name || '',
-    team_name: profile?.team_name || '',
+    team_id: profile?.team_id || '',
     car_number: profile?.car_number?.toString() || ''
   });
 
@@ -26,7 +28,7 @@ const Profile: React.FC = () => {
     try {
       const updates = {
         full_name: formData.full_name,
-        team_name: formData.team_name || null,
+        team_id: formData.team_id || null,
         car_number: formData.car_number ? parseInt(formData.car_number) : null
       };
 
@@ -133,28 +135,26 @@ const Profile: React.FC = () => {
 
             {profile.role !== 'administrator' && (
               <>
-                <div className="space-y-2">
-                  <Label htmlFor="team_name" className="text-gray-300">Team Name</Label>
-                  <Input
-                    id="team_name"
-                    value={formData.team_name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, team_name: e.target.value }))}
-                    className="bg-gray-700 border-gray-600 text-white"
-                    placeholder="e.g., Red Bull Racing"
-                  />
-                </div>
+                <TeamSelector
+                  value={formData.team_id}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, team_id: value }))}
+                  label="Team"
+                  placeholder="Select your team"
+                />
 
-                {profile?.role === "driver" && <div className="space-y-2">
-                  <Label htmlFor="car_number" className="text-gray-300">Car Number</Label>
-                  <Input
-                    id="car_number"
-                    type="number"
-                    value={formData.car_number}
-                    onChange={(e) => setFormData(prev => ({ ...prev, car_number: e.target.value }))}
-                    className="bg-gray-700 border-gray-600 text-white"
-                    placeholder="33"
-                  />
-                </div>}
+                {profile?.role === "driver" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="car_number" className="text-gray-300">Car Number</Label>
+                    <Input
+                      id="car_number"
+                      type="number"
+                      value={formData.car_number}
+                      onChange={(e) => setFormData(prev => ({ ...prev, car_number: e.target.value }))}
+                      className="bg-gray-700 border-gray-600 text-white"
+                      placeholder="33"
+                    />
+                  </div>
+                )}
               </>
             )}
 
@@ -172,35 +172,7 @@ const Profile: React.FC = () => {
         </CardContent>
       </Card>
 
-      <Card className="bg-gray-800/80 border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center">
-            <Key className="h-5 w-5 mr-2 text-yellow-400" />
-            Security
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-gray-700/50 rounded-lg">
-              <div>
-                <Label className="text-gray-300">Password</Label>
-                <p className="text-gray-400 text-sm">Last updated: Never</p>
-              </div>
-              <Button
-                variant="outline"
-                className="border-yellow-600 text-yellow-400 hover:bg-yellow-900"
-                disabled
-              >
-                Change Password
-              </Button>
-            </div>
-            <p className="text-gray-500 text-sm">
-              Password management is handled through Supabase Auth. 
-              Contact your Team Principal for password reset assistance.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <PasswordChangeForm />
     </div>
   );
 };

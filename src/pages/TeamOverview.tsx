@@ -20,6 +20,10 @@ interface TeamMember {
   role: string;
   car_number: number | null;
   created_at: string;
+  teams?: {
+    name: string;
+    full_name: string;
+  };
 }
 
 interface TeamStats {
@@ -54,15 +58,27 @@ const TeamOverview: React.FC = () => {
         // Administrators can see all users
         membersQuery = supabase
           .from('profiles')
-          .select('id, full_name, email, role, car_number, created_at')
+          .select(`
+            id, full_name, email, role, car_number, created_at,
+            teams (
+              name,
+              full_name
+            )
+          `)
           .order('role', { ascending: true })
           .order('full_name', { ascending: true });
       } else {
         // Others see only their team
         membersQuery = supabase
           .from('profiles')
-          .select('id, full_name, email, role, car_number, created_at')
-          .eq('team_name', profile?.team_name)
+          .select(`
+            id, full_name, email, role, car_number, created_at,
+            teams (
+              name,
+              full_name
+            )
+          `)
+          .eq('team_id', profile?.team_id)
           .order('role', { ascending: true })
           .order('full_name', { ascending: true });
       }
@@ -184,7 +200,7 @@ const TeamOverview: React.FC = () => {
 
   const groupedMembers = groupMembersByRole(teamStats.teamMembers);
   const pageTitle = profile.role === 'administrator' ? 'System Overview' : 'Team Overview';
-  const pageSubtitle = profile.role === 'administrator' ? 'All users and system performance' : `${profile?.team_name || 'Your Team'} - Performance and member overview`;
+  const pageSubtitle = profile.role === 'administrator' ? 'All users and system performance' : 'Team performance and member overview';
 
   return (
     <div className="space-y-6">
@@ -266,6 +282,9 @@ const TeamOverview: React.FC = () => {
                       </Badge>
                     </div>
                     <p className="text-gray-400 text-sm mb-2">{member.email}</p>
+                    {member.teams && (
+                      <p className="text-blue-400 text-sm mb-2">{member.teams.name}</p>
+                    )}
                     <div className="flex items-center justify-between text-sm">
                       {member.car_number && (
                         <span className="text-red-400 font-bold">#{member.car_number}</span>
@@ -289,7 +308,7 @@ const TeamOverview: React.FC = () => {
             <p className="text-gray-400 text-lg">No team members found</p>
             {profile.role !== 'administrator' && (
               <p className="text-gray-500 text-sm mt-2">
-                Make sure your team name is set correctly in your profile
+                Make sure your team is set correctly in your profile
               </p>
             )}
           </CardContent>
