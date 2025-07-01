@@ -38,7 +38,7 @@ const AuditLogs: React.FC = () => {
   });
 
   useEffect(() => {
-    if (profile?.role === 'team_principal') {
+    if (profile?.role === 'administrator') {
       fetchAuditLogs();
     }
   }, [profile]);
@@ -129,7 +129,7 @@ const AuditLogs: React.FC = () => {
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (profile?.role === 'team_principal') {
+      if (profile?.role === 'administrator') {
         fetchAuditLogs();
       }
     }, 300);
@@ -137,13 +137,13 @@ const AuditLogs: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [filter, profile]);
 
-  if (profile?.role !== 'team_principal') {
+  if (profile?.role !== 'administrator') {
     return (
       <div className="min-h-96 flex items-center justify-center">
         <div className="text-center">
           <Shield className="h-16 w-16 text-gray-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-white mb-2">Access Denied</h2>
-          <p className="text-gray-400">Only Team Principals can view audit logs.</p>
+          {/* <p className="text-gray-400">Only Administrators can view audit logs.</p> */}
         </div>
       </div>
     );

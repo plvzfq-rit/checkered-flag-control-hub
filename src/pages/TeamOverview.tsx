@@ -72,7 +72,7 @@ const TeamOverview: React.FC = () => {
         membersQuery = supabase
           .from('profiles')
           .select(`
-            id, full_name, email, role, car_number, created_at,
+            id, full_name, email, role, car_number, created_at, team_id,
             teams (
               name,
               full_name
@@ -84,7 +84,6 @@ const TeamOverview: React.FC = () => {
       }
 
       const { data: members, error: membersError } = await membersQuery;
-      if (membersError) throw membersError;
 
       // Fetch team sessions
       const memberIds = members?.map(m => m.id) || [];

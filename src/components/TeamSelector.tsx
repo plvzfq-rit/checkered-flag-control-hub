@@ -32,6 +32,7 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
     const loadTeams = async () => {
       try {
         const teamsData = await fetchTeams();
+        // console.log(teamsData);
         setTeams(teamsData);
       } catch (error) {
         console.error('Error loading teams:', error);

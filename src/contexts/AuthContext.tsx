@@ -11,7 +11,9 @@ interface Profile {
   email: string;
   full_name: string;
   role: UserRole;
+  team_id: string | null;
   team_name: string | null;
+  team_full_name: string | null;
   car_number: number | null;
 }
 
@@ -46,12 +48,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, email, full_name, role, car_number, team_id, teams(name, full_name)')
         .eq('id', userId)
         .single();
 
+      // console.log(data)
+
       if (error) throw error;
-      setProfile(data);
+      setProfile({
+        ...data,
+        team_name: data.teams?.name ?? null,
+        team_full_name: data.teams?.full_name ?? null,
+      });
     } catch (error) {
       console.error('Error fetching profile:', error);
     }

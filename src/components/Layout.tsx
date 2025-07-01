@@ -29,6 +29,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const getRoleDisplayName = (role: string) => {
     switch (role) {
+      case 'administrator':
+        return "Administrator";
       case 'team_principal':
         return 'Team Principal';
       case 'race_engineer':
@@ -63,7 +65,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       {profile.team_name && (
                         <span className="text-xs text-gray-400">{profile.team_name}</span>
                       )}
-                      {profile.car_number && (
+                      {profile.car_number && profile.role === "driver" && (
                         <span className="text-xs text-red-400 font-bold">#{profile.car_number}</span>
                       )}
                     </div>

@@ -15,6 +15,9 @@ export const fetchTeams = async (): Promise<Team[]> => {
     .select('*')
     .order('name');
 
+  // console.log(data)
+  // console.log(error)
+
   if (error) {
     console.error('Error fetching teams:', error);
     throw error;
