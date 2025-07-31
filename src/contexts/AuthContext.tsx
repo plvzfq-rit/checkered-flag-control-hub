@@ -15,6 +15,11 @@ interface Profile {
   team_name: string | null;
   team_full_name: string | null;
   car_number: number | null;
+  last_login_at: string | null;
+  last_login_ip: string | null;
+  failed_login_count: number | null;
+  password_changed_at: string | null;
+  account_locked_until: string | null;
 }
 
 interface AuthContextType {
@@ -48,7 +53,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, email, full_name, role, car_number, team_id, teams(name, full_name)')
+        .select(`
+          id, email, full_name, role, car_number, team_id, 
+          last_login_at, last_login_ip, failed_login_count, 
+          password_changed_at, account_locked_until,
+          teams(name, full_name)
+        `)
         .eq('id', userId)
         .single();
 
@@ -56,7 +66,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
       setProfile({
-        ...data,
+        id: data.id,
+        email: data.email,
+        full_name: data.full_name,
+        role: data.role,
+        team_id: data.team_id,
+        car_number: data.car_number,
+        last_login_at: data.last_login_at as string | null,
+        last_login_ip: data.last_login_ip as string | null,
+        failed_login_count: data.failed_login_count as number | null,
+        password_changed_at: data.password_changed_at as string | null,
+        account_locked_until: data.account_locked_until as string | null,
         team_name: data.teams?.name ?? null,
         team_full_name: data.teams?.full_name ?? null,
       });

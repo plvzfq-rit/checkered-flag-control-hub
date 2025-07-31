@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_lockouts: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          locked_until: string
+          reason: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          locked_until: string
+          reason?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          locked_until?: string
+          reason?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -60,6 +87,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      login_attempts: {
+        Row: {
+          created_at: string
+          email: string
+          failure_reason: string | null
+          id: string
+          ip_address: unknown | null
+          success: boolean
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown | null
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown | null
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      password_history: {
+        Row: {
+          created_at: string
+          id: string
+          password_hash: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          password_hash: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          password_hash?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       pit_stops: {
         Row: {
@@ -114,31 +195,46 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_locked_until: string | null
           car_number: number | null
           created_at: string
           email: string
+          failed_login_count: number | null
           full_name: string
           id: string
+          last_login_at: string | null
+          last_login_ip: unknown | null
+          password_changed_at: string | null
           role: Database["public"]["Enums"]["user_role"]
           team_id: string | null
           updated_at: string
         }
         Insert: {
+          account_locked_until?: string | null
           car_number?: number | null
           created_at?: string
           email: string
+          failed_login_count?: number | null
           full_name: string
           id: string
+          last_login_at?: string | null
+          last_login_ip?: unknown | null
+          password_changed_at?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           team_id?: string | null
           updated_at?: string
         }
         Update: {
+          account_locked_until?: string | null
           car_number?: number | null
           created_at?: string
           email?: string
+          failed_login_count?: number | null
           full_name?: string
           id?: string
+          last_login_at?: string | null
+          last_login_ip?: unknown | null
+          password_changed_at?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           team_id?: string | null
           updated_at?: string
@@ -212,6 +308,39 @@ export type Database = {
           },
         ]
       }
+      security_questions: {
+        Row: {
+          answer_1_hash: string
+          answer_2_hash: string
+          created_at: string
+          id: string
+          question_1: string
+          question_2: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answer_1_hash: string
+          answer_2_hash: string
+          created_at?: string
+          id?: string
+          question_1: string
+          question_2: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answer_1_hash?: string
+          answer_2_hash?: string
+          created_at?: string
+          id?: string
+          question_1?: string
+          question_2?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       teams: {
         Row: {
           created_at: string | null
@@ -241,6 +370,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_change_password: {
+        Args: { user_uuid: string }
+        Returns: boolean
+      }
       get_user_role: {
         Args: { user_uuid: string }
         Returns: Database["public"]["Enums"]["user_role"]
@@ -252,6 +385,18 @@ export type Database = {
       get_user_team_id: {
         Args: { user_uuid: string }
         Returns: string
+      }
+      handle_failed_login: {
+        Args: { user_email: string; user_ip?: unknown }
+        Returns: undefined
+      }
+      handle_successful_login: {
+        Args: { user_email: string; user_ip?: unknown }
+        Returns: undefined
+      }
+      is_account_locked: {
+        Args: { user_email: string }
+        Returns: boolean
       }
     }
     Enums: {

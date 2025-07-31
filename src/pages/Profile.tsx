@@ -10,6 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { User, Save, Trophy } from 'lucide-react';
 import TeamSelector from '@/components/TeamSelector';
 import PasswordChangeForm from '@/components/PasswordChangeForm';
+import SecurityQuestions from '@/components/SecurityQuestions';
+import LastLoginInfo from '@/components/LastLoginInfo';
 
 const Profile: React.FC = () => {
   const { profile, updateProfile } = useAuth();
@@ -172,6 +174,16 @@ const Profile: React.FC = () => {
         </CardContent>
       </Card>
 
+      {profile.last_login_at && (
+        <LastLoginInfo
+          lastLoginAt={profile.last_login_at}
+          lastLoginIp={profile.last_login_ip}
+          failedLoginCount={profile.failed_login_count || 0}
+        />
+      )}
+
+      <SecurityQuestions />
+      
       <PasswordChangeForm />
     </div>
   );
