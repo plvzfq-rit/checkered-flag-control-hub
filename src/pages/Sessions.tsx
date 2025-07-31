@@ -20,8 +20,11 @@ interface RaceSession {
   created_at: string;
   profiles?: {
     full_name: string;
-    team_name: string | null;
+    team_id: string | null;
     car_number: number | null;
+    teams?: {
+      name: string;
+    };
   };
 }
 
@@ -44,8 +47,11 @@ const Sessions: React.FC = () => {
           *,
           profiles (
             full_name,
-            team_name,
-            car_number
+            team_id,
+            car_number,
+            teams (
+              name
+            )
           )
         `)
         .order('created_at', { ascending: false });

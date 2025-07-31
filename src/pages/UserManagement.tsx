@@ -21,7 +21,13 @@ interface UserProfile {
   team_id: string | null;
   car_number: number | null;
   created_at: string;
-  teams?: Team;
+  teams?: {
+    id: string;
+    name: string;
+    full_name: string;
+    short_code: string | null;
+    created_at: string;
+  };
 }
 
 const UserManagement: React.FC = () => {
@@ -54,7 +60,9 @@ const UserManagement: React.FC = () => {
           teams (
             id,
             name,
-            full_name
+            full_name,
+            short_code,
+            created_at
           )
         `)
         .order('created_at', { ascending: false });
