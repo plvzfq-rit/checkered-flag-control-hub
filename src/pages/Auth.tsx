@@ -165,24 +165,24 @@ const Auth: React.FC = () => {
   const testResetUser = async () => {
     try {
       console.log('Testing reset for:', email);
-      
+
       const { data, error } = await supabase.functions.invoke('enhanced-auth', {
         body: {
           email,
           action: 'test_reset_user'
         }
       });
-      
-             if (error) {
-         console.error('Test reset error:', error);
-         alert(`Test reset error: ${error.message}`);
-       } else {
-         console.log('Test reset result:', data);
-         const beforeCount = data?.beforeProfile?.failed_login_count || 0;
-         const afterCount = data?.afterProfile?.failed_login_count || 0;
-         const sqlResult = data?.sqlResult;
-         alert(`Test reset completed. Before: ${beforeCount}, After: ${afterCount}. SQL Result: ${sqlResult}. Check console for details.`);
-       }
+
+      if (error) {
+        console.error('Test reset error:', error);
+        alert(`Test reset error: ${error.message}`);
+      } else {
+        console.log('Test reset result:', data);
+        const beforeCount = data?.beforeProfile?.failed_login_count || 0;
+        const afterCount = data?.afterProfile?.failed_login_count || 0;
+        const sqlResult = data?.sqlResult;
+        alert(`Test reset completed. Before: ${beforeCount}, After: ${afterCount}. SQL Result: ${sqlResult}. Check console for details.`);
+      }
     } catch (error) {
       console.error('Test reset exception:', error);
       alert(`Test reset exception: ${error.message}`);
@@ -465,23 +465,23 @@ const Auth: React.FC = () => {
                   />
                 </div>
 
-                                 <Button
-                   type="submit"
-                   className="w-full bg-red-600 hover:bg-red-700 text-white"
-                   disabled={loading}
-                 >
-                   {loading ? 'Starting Engine...' : 'Enter Pit Lane'}
-                 </Button>
-                 
-                 <Button
-                   type="button"
-                   onClick={testResetUser}
-                   className="w-full bg-orange-600 hover:bg-orange-700 text-white"
-                   disabled={!email}
-                 >
-                   Test Reset User
-                 </Button>
-                
+                <Button
+                  type="submit"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white"
+                  disabled={loading}
+                >
+                  {loading ? 'Starting Engine...' : 'Enter Pit Lane'}
+                </Button>
+                {/**/}
+                {/* <Button */}
+                {/*   type="button" */}
+                {/*   onClick={testResetUser} */}
+                {/*   className="w-full bg-orange-600 hover:bg-orange-700 text-white" */}
+                {/*   disabled={!email} */}
+                {/* > */}
+                {/*   Test Reset User */}
+                {/* </Button> */}
+
 
               </form>
             </TabsContent>
