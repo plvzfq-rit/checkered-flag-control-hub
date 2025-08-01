@@ -6,19 +6,41 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
-import { Trophy, AlertCircle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Trophy, AlertCircle, HelpCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import SecurityQuestionsDialog from '@/components/SecurityQuestionsDialog';
+
+const SECURITY_QUESTIONS = [
+  "What was the name of your first pet?",
+  "In what city were you born?",
+  "What was your childhood nickname?",
+  "What is the name of your favorite childhood friend?",
+  "What street did you live on in third grade?",
+  "What was the make of your first car?",
+  "What was the name of the company where you had your first job?",
+  "What was your favorite food as a child?",
+  "What is your father's middle name?",
+  "What high school did you attend?",
+  "What was the name of your elementary school?",
+  "In what town was your first job?",
+  "What is the middle name of your youngest child?",
+  "What school did you attend for sixth grade?",
+  "What was your childhood phone number including area code?"
+];
 
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showSecurityQuestions, setShowSecurityQuestions] = useState(false);
-  const [pendingUserId, setPendingUserId] = useState<string | null>(null);
+  const [securityQuestions, setSecurityQuestions] = useState({
+    question1: '',
+    answer1: '',
+    question2: '',
+    answer2: ''
+  });
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
@@ -96,6 +118,37 @@ const Auth: React.FC = () => {
     setLoading(true);
 
     try {
+      // Validate security questions
+      if (!securityQuestions.question1 || !securityQuestions.question2) {
+        toast({
+          title: "Error",
+          description: "Please select both security questions",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (securityQuestions.question1 === securityQuestions.question2) {
+        toast({
+          title: "Error",
+          description: "Please select different security questions",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (securityQuestions.answer1.length < 3 || securityQuestions.answer2.length < 3) {
+        toast({
+          title: "Error",
+          description: "Security question answers must be at least 3 characters long",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await signUp(email, password, fullName);
       if (error) {
         console.log(error);
@@ -114,11 +167,32 @@ const Auth: React.FC = () => {
             password_hash: passwordHash
           });
 
-        setPendingUserId(data.user.id);
-        setShowSecurityQuestions(true);
+        // Save security questions
+        const hashAnswer = (answer: string) => btoa(answer.toLowerCase().trim());
+        await supabase
+          .from('security_questions')
+          .insert({
+            user_id: data.user.id,
+            question_1: securityQuestions.question1,
+            answer_1_hash: hashAnswer(securityQuestions.answer1),
+            question_2: securityQuestions.question2,
+            answer_2_hash: hashAnswer(securityQuestions.answer2)
+          });
+
         toast({
-          title: "Registration Successful!",
-          description: "Please set up your security questions to complete registration.",
+          title: "Registration Complete!",
+          description: "Welcome to the team! Check your email to confirm your account.",
+        });
+        
+        // Reset form
+        setEmail('');
+        setPassword('');
+        setFullName('');
+        setSecurityQuestions({
+          question1: '',
+          answer1: '',
+          question2: '',
+          answer2: ''
         });
       }
     } catch (error) {
@@ -128,14 +202,6 @@ const Auth: React.FC = () => {
     }
   };
 
-  const handleSecurityQuestionsComplete = () => {
-    setShowSecurityQuestions(false);
-    setPendingUserId(null);
-    toast({
-      title: "Account Setup Complete!",
-      description: "Welcome to the team! Check your email to confirm your account.",
-    });
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-red-900 flex items-center justify-center p-4">
@@ -238,6 +304,76 @@ const Auth: React.FC = () => {
                   />
                 </div>
                 
+                <div className="space-y-2">
+                  <Label className="text-gray-300 flex items-center">
+                    <HelpCircle className="h-4 w-4 mr-2" />
+                    Security Question 1
+                  </Label>
+                  <Select 
+                    value={securityQuestions.question1} 
+                    onValueChange={(value) => setSecurityQuestions(prev => ({ ...prev, question1: value }))}
+                  >
+                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                      <SelectValue placeholder="Select a question" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-700 border-gray-600 z-50">
+                      {SECURITY_QUESTIONS.map((question, index) => (
+                        <SelectItem key={index} value={question} disabled={question === securityQuestions.question2}>
+                          {question}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="answer1" className="text-gray-300">Answer 1</Label>
+                  <Input
+                    id="answer1"
+                    value={securityQuestions.answer1}
+                    onChange={(e) => setSecurityQuestions(prev => ({ ...prev, answer1: e.target.value }))}
+                    className="bg-gray-700 border-gray-600 text-white"
+                    placeholder="Your answer (case insensitive)"
+                    required
+                    minLength={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-gray-300 flex items-center">
+                    <HelpCircle className="h-4 w-4 mr-2" />
+                    Security Question 2
+                  </Label>
+                  <Select 
+                    value={securityQuestions.question2} 
+                    onValueChange={(value) => setSecurityQuestions(prev => ({ ...prev, question2: value }))}
+                  >
+                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                      <SelectValue placeholder="Select a different question" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-700 border-gray-600 z-50">
+                      {SECURITY_QUESTIONS.map((question, index) => (
+                        <SelectItem key={index} value={question} disabled={question === securityQuestions.question1}>
+                          {question}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="answer2" className="text-gray-300">Answer 2</Label>
+                  <Input
+                    id="answer2"
+                    value={securityQuestions.answer2}
+                    onChange={(e) => setSecurityQuestions(prev => ({ ...prev, answer2: e.target.value }))}
+                    className="bg-gray-700 border-gray-600 text-white"
+                    placeholder="Your answer (case insensitive)"
+                    required
+                    minLength={3}
+                  />
+                </div>
+                
                 <div className="flex items-start space-x-2 text-sm text-yellow-400">
                   <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                   <p>New drivers start with Driver role. Contact your Team Principal for role upgrades.</p>
@@ -255,16 +391,6 @@ const Auth: React.FC = () => {
           </Tabs>
         </CardContent>
       </Card>
-
-      <SecurityQuestionsDialog
-        isOpen={showSecurityQuestions}
-        onClose={() => setShowSecurityQuestions(false)}
-        onSuccess={handleSecurityQuestionsComplete}
-        title="Setup Security Questions"
-        description="Please set up your security questions for account recovery"
-        mode="setup"
-        userId={pendingUserId || undefined}
-      />
     </div>
   );
 };
