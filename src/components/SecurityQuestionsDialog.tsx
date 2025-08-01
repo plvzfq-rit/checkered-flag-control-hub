@@ -10,11 +10,8 @@ import { Shield, HelpCircle } from 'lucide-react';
 
 const SECURITY_QUESTIONS = [
   "What was the name of your first pet?",
-  "In what city were you born?",
   "What was your childhood nickname?",
   "What is the name of your favorite childhood friend?",
-  "What street did you live on in third grade?",
-  "What was the make of your first car?",
   "What was the name of the company where you had your first job?",
   "What was your favorite food as a child?",
   "What is your father's middle name?",
@@ -23,7 +20,6 @@ const SECURITY_QUESTIONS = [
   "In what town was your first job?",
   "What is the middle name of your youngest child?",
   "What school did you attend for sixth grade?",
-  "What was your childhood phone number including area code?"
 ];
 
 interface SecurityQuestionsDialogProps {

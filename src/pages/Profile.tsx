@@ -174,13 +174,11 @@ const Profile: React.FC = () => {
         </CardContent>
       </Card>
 
-      {profile.last_login_at && (
-        <LastLoginInfo
-          lastLoginAt={profile.last_login_at}
-          lastLoginIp={profile.last_login_ip}
-          failedLoginCount={profile.failed_login_count || 0}
-        />
-      )}
+      <LastLoginInfo
+        lastLoginAt={profile.last_login_at}
+        lastLoginIp={profile.last_login_ip}
+        failedLoginCount={profile.failed_login_count || 0}
+      />
 
       
       
