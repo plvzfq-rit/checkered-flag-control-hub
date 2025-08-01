@@ -48,7 +48,36 @@ const Auth: React.FC = () => {
     e.preventDefault();
     setLoading(true);
 
+    // Helper function to log input failures for sign-in
+    const logSignInInputFailure = async (failureType: string, errorMessage: string) => {
+      try {
+        await supabase
+          .from('input_failures')
+          .insert({
+            email: email,
+            failure_type: failureType,
+            error_message: errorMessage,
+            ip_address: await getClientIP(),
+            user_agent: navigator.userAgent
+          });
+      } catch (error) {
+        console.error('Failed to log sign-in input failure:', error);
+      }
+    };
+
     try {
+      // Validate email format for sign-in
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        await logSignInInputFailure('email_error', 'Invalid email format during sign-in');
+        toast({
+          title: "Error",
+          description: "Please enter a valid email address",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
       // Check if account is locked before attempting login
       const { data: lockoutData, error: lockoutError } = await supabase.functions.invoke('enhanced-auth', {
         body: {
@@ -164,9 +193,114 @@ const Auth: React.FC = () => {
     e.preventDefault();
     setLoading(true);
 
+    // Test if input_failures table exists
     try {
+      const { data, error } = await supabase
+        .from('input_failures')
+        .select('*')
+        .limit(1);
+      
+      if (error) {
+        console.error('Input failures table test error:', error);
+      } else {
+        console.log('Input failures table exists and is accessible');
+      }
+    } catch (error) {
+      console.error('Failed to test input_failures table:', error);
+    }
+
+    // Helper function to log input failures
+    const logInputFailure = async (failureType: string, errorMessage: string) => {
+      try {
+        console.log('Attempting to log input failure:', {
+          email: email,
+          failure_type: failureType,
+          error_message: errorMessage
+        });
+        
+        const { data, error } = await supabase
+          .from('input_failures')
+          .insert({
+            email: email,
+            failure_type: failureType,
+            error_message: errorMessage,
+            ip_address: await getClientIP(),
+            user_agent: navigator.userAgent
+          });
+        
+        if (error) {
+          console.error('Supabase error logging input failure:', error);
+        } else {
+          console.log('Successfully logged input failure:', data);
+        }
+      } catch (error) {
+        console.error('Failed to log input failure:', error);
+      }
+    };
+
+    try {
+      // Validate email format
+      console.log('Validating email:', email);
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const isValidEmail = emailRegex.test(email);
+      console.log('Email validation result:', isValidEmail);
+      
+      if (!isValidEmail) {
+        console.log('Email validation failed, logging input failure...');
+        await logInputFailure('email_error', 'Invalid email format');
+        toast({
+          title: "Error",
+          description: "Please enter a valid email address",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Validate password strength
+      if (password.length < 8) {
+        await logInputFailure('password_error', 'Password too short (minimum 8 characters)');
+        toast({
+          title: "Error",
+          description: "Password must be at least 8 characters long",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Check for password complexity
+      const hasUpperCase = /[A-Z]/.test(password);
+      const hasLowerCase = /[a-z]/.test(password);
+      const hasNumbers = /\d/.test(password);
+      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+      if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {
+        await logInputFailure('password_error', 'Password does not meet complexity requirements (uppercase, lowercase, number, special character)');
+        toast({
+          title: "Error",
+          description: "Password must contain uppercase, lowercase, number, and special character",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Validate full name
+      if (!fullName.trim() || fullName.trim().length < 2) {
+        await logInputFailure('validation_error', 'Full name is required and must be at least 2 characters');
+        toast({
+          title: "Error",
+          description: "Please enter your full name (at least 2 characters)",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       // Validate security questions
       if (!securityQuestions.question1 || !securityQuestions.question2) {
+        await logInputFailure('validation_error', 'Both security questions must be selected');
         toast({
           title: "Error",
           description: "Please select both security questions",
@@ -177,6 +311,7 @@ const Auth: React.FC = () => {
       }
 
       if (securityQuestions.question1 === securityQuestions.question2) {
+        await logInputFailure('validation_error', 'Security questions must be different');
         toast({
           title: "Error",
           description: "Please select different security questions",
@@ -187,6 +322,7 @@ const Auth: React.FC = () => {
       }
 
       if (securityQuestions.answer1.length < 3 || securityQuestions.answer2.length < 3) {
+        await logInputFailure('validation_error', 'Security question answers must be at least 3 characters long');
         toast({
           title: "Error",
           description: "Security question answers must be at least 3 characters long",
@@ -199,6 +335,20 @@ const Auth: React.FC = () => {
       const { data, error } = await signUp(email, password, fullName);
       if (error) {
         console.log(error);
+        
+        // Log the sign-up error
+        let failureType = 'validation_error';
+        let errorMessage = error.message;
+        
+        // Categorize the error type
+        if (error.message.includes('email') || error.message.includes('Email')) {
+          failureType = 'email_error';
+        } else if (error.message.includes('password') || error.message.includes('Password')) {
+          failureType = 'password_error';
+        }
+        
+        await logInputFailure(failureType, errorMessage);
+        
         toast({
           title: "Registration Error",
           description: error.message,
@@ -244,6 +394,21 @@ const Auth: React.FC = () => {
       }
     } catch (error) {
       console.error('Sign up error:', error);
+      
+      // Log unexpected errors
+      try {
+        await supabase
+          .from('input_failures')
+          .insert({
+            email: email,
+            failure_type: 'validation_error',
+            error_message: error instanceof Error ? error.message : 'Unknown error during sign up',
+            ip_address: await getClientIP(),
+            user_agent: navigator.userAgent
+          });
+      } catch (logError) {
+        console.error('Failed to log unexpected error:', logError);
+      }
     } finally {
       setLoading(false);
     }
@@ -340,7 +505,7 @@ const Auth: React.FC = () => {
                   <Label htmlFor="signup-email" className="text-gray-300">Email</Label>
                   <Input
                     id="signup-email"
-                    type="email"
+                    type="text"
                     placeholder="driver@f1team.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
