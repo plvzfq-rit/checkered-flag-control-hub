@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { User, Save, Trophy } from 'lucide-react';
 import TeamSelector from '@/components/TeamSelector';
 import PasswordChangeForm from '@/components/PasswordChangeForm';
-import SecurityQuestions from '@/components/SecurityQuestions';
+
 import LastLoginInfo from '@/components/LastLoginInfo';
 
 const Profile: React.FC = () => {
@@ -182,7 +182,7 @@ const Profile: React.FC = () => {
         />
       )}
 
-      <SecurityQuestions />
+      
       
       <PasswordChangeForm />
     </div>

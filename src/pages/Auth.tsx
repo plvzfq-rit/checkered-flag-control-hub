@@ -9,12 +9,16 @@ import { Label } from '@/components/ui/label';
 import { Trophy, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import SecurityQuestionsDialog from '@/components/SecurityQuestionsDialog';
 
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showSecurityQuestions, setShowSecurityQuestions] = useState(false);
+  const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
@@ -23,7 +27,40 @@ const Auth: React.FC = () => {
     setLoading(true);
 
     try {
+      // Check if account is locked before attempting login
+      const { data: lockoutData } = await supabase.functions.invoke('enhanced-auth', {
+        body: { 
+          email, 
+          action: 'check_lockout',
+          ip: await getClientIP(),
+          userAgent: navigator.userAgent 
+        }
+      });
+
+      if (lockoutData?.isLocked) {
+        toast({
+          title: "Account Locked",
+          description: "Your account is temporarily locked due to multiple failed login attempts. Please try again later.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       const { error } = await signIn(email, password);
+      
+      // Log the login attempt
+      await supabase.functions.invoke('enhanced-auth', {
+        body: { 
+          email, 
+          action: 'handle_login_attempt',
+          success: !error,
+          reason: error?.message,
+          ip: await getClientIP(),
+          userAgent: navigator.userAgent 
+        }
+      });
+
       if (error) {
         toast({
           title: "Authentication Error",
@@ -44,12 +81,22 @@ const Auth: React.FC = () => {
     }
   };
 
+  const getClientIP = async () => {
+    try {
+      const response = await fetch('https://api.ipify.org?format=json');
+      const data = await response.json();
+      return data.ip;
+    } catch {
+      return '0.0.0.0';
+    }
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { error } = await signUp(email, password, fullName);
+      const { data, error } = await signUp(email, password, fullName);
       if (error) {
         console.log(error);
         toast({
@@ -57,10 +104,21 @@ const Auth: React.FC = () => {
           description: error.message,
           variant: "destructive",
         });
-      } else {
+      } else if (data.user) {
+        // Store initial password in password history
+        const passwordHash = btoa(password);
+        await supabase
+          .from('password_history')
+          .insert({
+            user_id: data.user.id,
+            password_hash: passwordHash
+          });
+
+        setPendingUserId(data.user.id);
+        setShowSecurityQuestions(true);
         toast({
           title: "Registration Successful!",
-          description: "Welcome to the team! Check your email to confirm your account.",
+          description: "Please set up your security questions to complete registration.",
         });
       }
     } catch (error) {
@@ -68,6 +126,15 @@ const Auth: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSecurityQuestionsComplete = () => {
+    setShowSecurityQuestions(false);
+    setPendingUserId(null);
+    toast({
+      title: "Account Setup Complete!",
+      description: "Welcome to the team! Check your email to confirm your account.",
+    });
   };
 
   return (
@@ -188,6 +255,16 @@ const Auth: React.FC = () => {
           </Tabs>
         </CardContent>
       </Card>
+
+      <SecurityQuestionsDialog
+        isOpen={showSecurityQuestions}
+        onClose={() => setShowSecurityQuestions(false)}
+        onSuccess={handleSecurityQuestionsComplete}
+        title="Setup Security Questions"
+        description="Please set up your security questions for account recovery"
+        mode="setup"
+        userId={pendingUserId || undefined}
+      />
     </div>
   );
 };

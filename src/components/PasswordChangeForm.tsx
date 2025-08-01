@@ -6,14 +6,14 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Key, Eye, EyeOff, Clock } from 'lucide-react';
-import ReAuthDialog from './ReAuthDialog';
+import SecurityQuestionsDialog from './SecurityQuestionsDialog';
 
 const PasswordChangeForm: React.FC = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [canChangePassword, setCanChangePassword] = useState(true);
-  const [showReAuthDialog, setShowReAuthDialog] = useState(false);
-  const [isReAuthenticated, setIsReAuthenticated] = useState(false);
+  const [showSecurityDialog, setShowSecurityDialog] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
   const [passwordLastChanged, setPasswordLastChanged] = useState<string | null>(null);
   const [showPasswords, setShowPasswords] = useState({
     current: false,
@@ -95,8 +95,8 @@ const PasswordChangeForm: React.FC = () => {
       return;
     }
 
-    if (!isReAuthenticated) {
-      setShowReAuthDialog(true);
+    if (!isVerified) {
+      setShowSecurityDialog(true);
       return;
     }
     
@@ -164,13 +164,13 @@ const PasswordChangeForm: React.FC = () => {
         description: "Password updated successfully"
       });
 
-      // Reset form and re-auth state
+      // Reset form and verification state
       setFormData({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       });
-      setIsReAuthenticated(false);
+      setIsVerified(false);
       checkPasswordChangeEligibility();
     } catch (error: any) {
       console.error('Error updating password:', error);
@@ -201,13 +201,13 @@ const PasswordChangeForm: React.FC = () => {
 
   return (
     <>
-      <ReAuthDialog 
-        isOpen={showReAuthDialog}
-        onClose={() => setShowReAuthDialog(false)}
+      <SecurityQuestionsDialog 
+        isOpen={showSecurityDialog}
+        onClose={() => setShowSecurityDialog(false)}
         onSuccess={() => {
-          setIsReAuthenticated(true);
-          setShowReAuthDialog(false);
-          // Re-submit form after successful re-auth
+          setIsVerified(true);
+          setShowSecurityDialog(false);
+          // Re-submit form after successful verification
           setTimeout(() => {
             const form = document.querySelector('form');
             if (form) {
@@ -217,7 +217,8 @@ const PasswordChangeForm: React.FC = () => {
           }, 100);
         }}
         title="Verify Your Identity"
-        description="Please enter your current password to change your password"
+        description="Please answer your security questions to change your password"
+        mode="verify"
       />
       
       <Card className="bg-gray-800/80 border-gray-700">
