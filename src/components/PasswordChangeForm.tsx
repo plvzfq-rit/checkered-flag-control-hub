@@ -118,6 +118,15 @@ const PasswordChangeForm: React.FC = () => {
       return;
     }
 
+    if (formData.newPassword.length > 64) {
+      toast({
+        title: "Error",
+        description: "Password cannot be longer than 64 characters",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Check password history
     const isNewPassword = await checkPasswordHistory(formData.newPassword);
     if (!isNewPassword) {

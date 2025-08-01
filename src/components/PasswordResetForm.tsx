@@ -99,6 +99,15 @@ const PasswordResetForm: React.FC<PasswordResetFormProps> = ({ email, onSuccess 
       return;
     }
 
+    if (formData.newPassword.length > 64) {
+      toast({
+        title: "Error",
+        description: "Password cannot be longer than 64 characters",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {

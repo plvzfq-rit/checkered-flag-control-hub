@@ -86,7 +86,7 @@ const Auth: React.FC = () => {
       if (error) {
         toast({
           title: "Authentication Error",
-          description: error.message,
+          description: "Invalid username and/or password",
           variant: "destructive",
         });
       } else {
@@ -118,6 +118,16 @@ const Auth: React.FC = () => {
     setLoading(true);
 
     try {
+      // Validate lengths
+      if (email.length < 5 || email.length > 254) {
+        toast({
+          title: "Invalid Email",
+          description: "Email must be between 5 and 254 characters.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Validate security questions
       if (!securityQuestions.question1 || !securityQuestions.question2) {
         toast({
