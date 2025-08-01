@@ -17,7 +17,8 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseKey)
     
-    const { email, password, action, ip, userAgent } = await req.json()
+    const body = await req.json()
+    const { email, password, action, ip, userAgent, success, reason } = body
 
     if (action === 'check_lockout') {
       // Check if account is locked
@@ -33,7 +34,6 @@ serve(async (req) => {
     }
 
     if (action === 'handle_login_attempt') {
-      const { success, reason } = await req.json()
 
       // Log the attempt
       await supabase
