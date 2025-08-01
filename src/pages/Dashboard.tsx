@@ -16,7 +16,6 @@ import {
   Shield,
   Activity
 } from 'lucide-react';
-import RequireAuth from '@/components/RequireAuth';
 
 const Dashboard: React.FC = () => {
   const { profile } = useAuth();
