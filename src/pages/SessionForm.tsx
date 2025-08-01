@@ -75,6 +75,82 @@ const SessionForm: React.FC = () => {
     e.preventDefault();
     setLoading(true);
 
+    const lapTime = parseFloat(formData.lap_time);
+    const sector1 = parseFloat(formData.sector_1);
+    const sector2 = parseFloat(formData.sector_2);
+    const sector3 = parseFloat(formData.sector_3);
+    const fuelLoad = parseFloat(formData.fuel_load);
+
+    // Track name length check
+    if (formData.track_name.trim().length > 100) {
+      toast({ 
+        title: "Invalid Track Name", 
+        description: "Track name must be under 100 characters.", 
+        variant: "destructive" 
+      });
+      setLoading(false); return;
+    }
+
+    // Lap time range check
+    if (isNaN(lapTime) || lapTime < 50 || lapTime > 300) {
+      toast({ 
+        title: "Invalid Lap Time", 
+        description: "Lap time must be between 50 and 300 seconds.", 
+        variant: "destructive" 
+      });
+      setLoading(false); return;
+    }
+
+    // Sector range checks
+    for (const [label, rawValue] of [
+      ["Sector 1", formData.sector_1],
+      ["Sector 2", formData.sector_2],
+      ["Sector 3", formData.sector_3]
+    ] as const) {
+      const value = parseFloat(rawValue);
+      if (isNaN(value) || value < 10 || value > 150) {
+        toast({
+          title: `Invalid ${label}`,
+          description: `${label} must be between 10 and 150 seconds.`,
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Sector time sum check
+    if ((sector1 + sector2 + sector3) - lapTime > 0.2) {
+      toast({ 
+        title: "Sector Mismatch", 
+        description: "Sum of sectors cannot exceed lap time.", 
+        variant: "destructive" 
+      });
+      setLoading(false); return;
+    }
+
+    // Fuel load range check
+    if (isNaN(fuelLoad) || fuelLoad < 0 || fuelLoad > 110) {
+      toast({ 
+        title: "Invalid Fuel Load", 
+        description: "Fuel load must be between 0 and 110 kg.", 
+        variant: "destructive" 
+      });
+      setLoading(false); return;
+    }
+
+    // Weather condition length
+    if (formData.weather_conditions.length > 50) {
+      toast({ title: "Weather Conditions Too Long", description: "Keep it under 50 characters.", variant: "destructive" });
+      setLoading(false); return;
+    }
+
+    // Notes length
+    if (formData.notes.length > 500) {
+      toast({ title: "Notes Too Long", description: "Maximum of 500 characters allowed.", variant: "destructive" });
+      setLoading(false); return;
+    }
+
     try {
       const sessionData = {
         session_type: formData.session_type,
@@ -114,6 +190,10 @@ const SessionForm: React.FC = () => {
       navigate('/sessions');
     } catch (error) {
       console.error('Error saving session:', error);
+      const track_name = formData.track_name
+      const weather = formData.weather_conditions
+      const notes = formData.notes
+      console.log({ track_name, lapTime, sector1, sector2, sector3, fuelLoad, weather, notes });
       toast({
         title: "Error",
         description: `Failed to ${isEditing ? 'update' : 'create'} session`,
