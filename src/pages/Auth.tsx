@@ -50,38 +50,56 @@ const Auth: React.FC = () => {
 
     try {
       // Check if account is locked before attempting login
-      const { data: lockoutData } = await supabase.functions.invoke('enhanced-auth', {
-        body: { 
-          email, 
+      const { data: lockoutData, error: lockoutError } = await supabase.functions.invoke('enhanced-auth', {
+        body: {
+          email,
           action: 'check_lockout',
           ip: await getClientIP(),
-          userAgent: navigator.userAgent 
+          userAgent: navigator.userAgent
         }
       });
 
-      if (lockoutData?.isLocked) {
-        toast({
-          title: "Account Locked",
-          description: "Your account is temporarily locked due to multiple failed login attempts. Please try again later.",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
+      if (lockoutError) {
+        console.error('Lockout check error:', lockoutError);
+        // Continue with login attempt if we can't check lockout
+        console.log('Continuing with login attempt despite check error');
+      } else {
+        console.log('Lockout check:', lockoutData); // Debug log
+
+        // If account is locked, block login
+        if (lockoutData?.isLocked) {
+          console.log('Blocking login - account is locked'); // Debug log
+          toast({
+            title: "Account Locked",
+            description: "Your account is temporarily locked due to multiple failed login attempts. Please try again later.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
       }
 
+      // Attempt to sign in
       const { error } = await signIn(email, password);
-      
-      // Log the login attempt
-      await supabase.functions.invoke('enhanced-auth', {
-        body: { 
-          email, 
-          action: 'handle_login_attempt',
-          success: !error,
-          reason: error?.message,
-          ip: await getClientIP(),
-          userAgent: navigator.userAgent 
-        }
-      });
+
+      // Log the login attempt AFTER authentication
+      try {
+        console.log('Logging login attempt:', { email, success: !error, reason: error?.message });
+        const logResult = await supabase.functions.invoke('enhanced-auth', {
+          body: {
+            email,
+            action: 'handle_login_attempt',
+            success: !error,
+            reason: error?.message,
+            ip: await getClientIP(),
+            userAgent: navigator.userAgent
+          }
+        });
+        console.log('Login attempt logged:', logResult);
+      } catch (logError) {
+        console.error('Failed to log login attempt:', logError);
+        // Don't block login if logging fails
+      }
 
       if (error) {
         toast({
@@ -103,6 +121,8 @@ const Auth: React.FC = () => {
     }
   };
 
+
+
   const getClientIP = async () => {
     try {
       const response = await fetch('https://api.ipify.org?format=json');
@@ -110,6 +130,33 @@ const Auth: React.FC = () => {
       return data.ip;
     } catch {
       return '0.0.0.0';
+    }
+  };
+
+  const testResetUser = async () => {
+    try {
+      console.log('Testing reset for:', email);
+      
+      const { data, error } = await supabase.functions.invoke('enhanced-auth', {
+        body: {
+          email,
+          action: 'test_reset_user'
+        }
+      });
+      
+             if (error) {
+         console.error('Test reset error:', error);
+         alert(`Test reset error: ${error.message}`);
+       } else {
+         console.log('Test reset result:', data);
+         const beforeCount = data?.beforeProfile?.failed_login_count || 0;
+         const afterCount = data?.afterProfile?.failed_login_count || 0;
+         const sqlResult = data?.sqlResult;
+         alert(`Test reset completed. Before: ${beforeCount}, After: ${afterCount}. SQL Result: ${sqlResult}. Check console for details.`);
+       }
+    } catch (error) {
+      console.error('Test reset exception:', error);
+      alert(`Test reset exception: ${error.message}`);
     }
   };
 
@@ -183,7 +230,7 @@ const Auth: React.FC = () => {
           title: "Registration Complete!",
           description: "Welcome to the team! Check your email to confirm your account.",
         });
-        
+
         // Reset form
         setEmail('');
         setPassword('');
@@ -217,14 +264,14 @@ const Auth: React.FC = () => {
             Enter the pit lane - Authentication required
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-gray-700">
               <TabsTrigger value="signin" className="text-gray-300">Sign In</TabsTrigger>
               <TabsTrigger value="signup" className="text-gray-300">Sign Up</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
@@ -239,7 +286,7 @@ const Auth: React.FC = () => {
                     className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="signin-password" className="text-gray-300">Password</Label>
                   <Input
@@ -252,17 +299,28 @@ const Auth: React.FC = () => {
                     className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                   />
                 </div>
+
+                                 <Button
+                   type="submit"
+                   className="w-full bg-red-600 hover:bg-red-700 text-white"
+                   disabled={loading}
+                 >
+                   {loading ? 'Starting Engine...' : 'Enter Pit Lane'}
+                 </Button>
+                 
+                 <Button
+                   type="button"
+                   onClick={testResetUser}
+                   className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+                   disabled={!email}
+                 >
+                   Test Reset User
+                 </Button>
                 
-                <Button
-                  type="submit"
-                  className="w-full bg-red-600 hover:bg-red-700 text-white"
-                  disabled={loading}
-                >
-                  {loading ? 'Starting Engine...' : 'Enter Pit Lane'}
-                </Button>
+
               </form>
             </TabsContent>
-            
+
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
@@ -277,7 +335,7 @@ const Auth: React.FC = () => {
                     className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="signup-email" className="text-gray-300">Email</Label>
                   <Input
@@ -290,7 +348,7 @@ const Auth: React.FC = () => {
                     className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="signup-password" className="text-gray-300">Password</Label>
                   <Input
@@ -303,14 +361,14 @@ const Auth: React.FC = () => {
                     className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label className="text-gray-300 flex items-center">
                     <HelpCircle className="h-4 w-4 mr-2" />
                     Security Question 1
                   </Label>
-                  <Select 
-                    value={securityQuestions.question1} 
+                  <Select
+                    value={securityQuestions.question1}
                     onValueChange={(value) => setSecurityQuestions(prev => ({ ...prev, question1: value }))}
                   >
                     <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
@@ -344,8 +402,8 @@ const Auth: React.FC = () => {
                     <HelpCircle className="h-4 w-4 mr-2" />
                     Security Question 2
                   </Label>
-                  <Select 
-                    value={securityQuestions.question2} 
+                  <Select
+                    value={securityQuestions.question2}
                     onValueChange={(value) => setSecurityQuestions(prev => ({ ...prev, question2: value }))}
                   >
                     <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
@@ -373,12 +431,12 @@ const Auth: React.FC = () => {
                     minLength={3}
                   />
                 </div>
-                
+
                 <div className="flex items-start space-x-2 text-sm text-yellow-400">
                   <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                   <p>New drivers start with Driver role. Contact your Team Principal for role upgrades.</p>
                 </div>
-                
+
                 <Button
                   type="submit"
                   className="w-full bg-green-600 hover:bg-green-700 text-white"

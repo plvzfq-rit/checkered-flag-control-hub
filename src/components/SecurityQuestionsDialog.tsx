@@ -186,138 +186,138 @@ const SecurityQuestionsDialog: React.FC<SecurityQuestionsDialogProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="bg-gray-800 border-gray-700 text-white max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <Shield className="h-5 w-5 mr-2 text-blue-400" />
-            {title}
-          </DialogTitle>
-          <p className="text-gray-400 text-sm">{description}</p>
-        </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === 'setup' ? (
-            <>
-              <div className="space-y-2">
-                <Label className="text-gray-300 flex items-center">
-                  <HelpCircle className="h-4 w-4 mr-2" />
-                  Security Question 1
-                </Label>
-                <Select 
-                  value={formData.question1} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, question1: value }))}
-                >
-                  <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                    <SelectValue placeholder="Select a question" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-700 border-gray-600">
-                    {SECURITY_QUESTIONS.map((question, index) => (
-                      <SelectItem key={index} value={question} disabled={question === formData.question2}>
-                        {question}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <Shield className="h-5 w-5 mr-2 text-blue-400" />
+              {title}
+            </DialogTitle>
+            <p className="text-gray-400 text-sm">{description}</p>
+          </DialogHeader>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === 'setup' ? (
+              <>
+                <div className="space-y-2">
+                  <Label className="text-gray-300 flex items-center">
+                    <HelpCircle className="h-4 w-4 mr-2" />
+                    Security Question 1
+                  </Label>
+                  <Select 
+                    value={formData.question1} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, question1: value }))}
+                  >
+                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                      <SelectValue placeholder="Select a question" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-700 border-gray-600">
+                      {SECURITY_QUESTIONS.map((question, index) => (
+                        <SelectItem key={index} value={question} disabled={question === formData.question2}>
+                          {question}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="answer1" className="text-gray-300">Answer 1</Label>
-                <Input
-                  id="answer1"
-                  value={formData.answer1}
-                  onChange={(e) => setFormData(prev => ({ ...prev, answer1: e.target.value }))}
-                  className="bg-gray-700 border-gray-600 text-white"
-                  placeholder="Your answer (case insensitive)"
-                  required
-                  minLength={3}
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="answer1" className="text-gray-300">Answer 1</Label>
+                  <Input
+                    id="answer1"
+                    value={formData.answer1}
+                    onChange={(e) => setFormData(prev => ({ ...prev, answer1: e.target.value }))}
+                    className="bg-gray-700 border-gray-600 text-white"
+                    placeholder="Your answer (case insensitive)"
+                    required
+                    minLength={3}
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label className="text-gray-300 flex items-center">
-                  <HelpCircle className="h-4 w-4 mr-2" />
-                  Security Question 2
-                </Label>
-                <Select 
-                  value={formData.question2} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, question2: value }))}
-                >
-                  <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                    <SelectValue placeholder="Select a different question" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-700 border-gray-600">
-                    {SECURITY_QUESTIONS.map((question, index) => (
-                      <SelectItem key={index} value={question} disabled={question === formData.question1}>
-                        {question}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                <div className="space-y-2">
+                  <Label className="text-gray-300 flex items-center">
+                    <HelpCircle className="h-4 w-4 mr-2" />
+                    Security Question 2
+                  </Label>
+                  <Select 
+                    value={formData.question2} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, question2: value }))}
+                  >
+                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                      <SelectValue placeholder="Select a different question" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-700 border-gray-600">
+                      {SECURITY_QUESTIONS.map((question, index) => (
+                        <SelectItem key={index} value={question} disabled={question === formData.question1}>
+                          {question}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="answer2" className="text-gray-300">Answer 2</Label>
-                <Input
-                  id="answer2"
-                  value={formData.answer2}
-                  onChange={(e) => setFormData(prev => ({ ...prev, answer2: e.target.value }))}
-                  className="bg-gray-700 border-gray-600 text-white"
-                  placeholder="Your answer (case insensitive)"
-                  required
-                  minLength={3}
-                />
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="verify-answer1" className="text-gray-300">
-                  {questions?.question_1}
-                </Label>
-                <Input
-                  id="verify-answer1"
-                  value={formData.answer1}
-                  onChange={(e) => setFormData(prev => ({ ...prev, answer1: e.target.value }))}
-                  className="bg-gray-700 border-gray-600 text-white"
-                  placeholder="Your answer"
-                  required
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="answer2" className="text-gray-300">Answer 2</Label>
+                  <Input
+                    id="answer2"
+                    value={formData.answer2}
+                    onChange={(e) => setFormData(prev => ({ ...prev, answer2: e.target.value }))}
+                    className="bg-gray-700 border-gray-600 text-white"
+                    placeholder="Your answer (case insensitive)"
+                    required
+                    minLength={3}
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="verify-answer1" className="text-gray-300">
+                    {questions?.question_1}
+                  </Label>
+                  <Input
+                    id="verify-answer1"
+                    value={formData.answer1}
+                    onChange={(e) => setFormData(prev => ({ ...prev, answer1: e.target.value }))}
+                    className="bg-gray-700 border-gray-600 text-white"
+                    placeholder="Your answer"
+                    required
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="verify-answer2" className="text-gray-300">
-                  {questions?.question_2}
-                </Label>
-                <Input
-                  id="verify-answer2"
-                  value={formData.answer2}
-                  onChange={(e) => setFormData(prev => ({ ...prev, answer2: e.target.value }))}
-                  className="bg-gray-700 border-gray-600 text-white"
-                  placeholder="Your answer"
-                  required
-                />
-              </div>
-            </>
-          )}
+                <div className="space-y-2">
+                  <Label htmlFor="verify-answer2" className="text-gray-300">
+                    {questions?.question_2}
+                  </Label>
+                  <Input
+                    id="verify-answer2"
+                    value={formData.answer2}
+                    onChange={(e) => setFormData(prev => ({ ...prev, answer2: e.target.value }))}
+                    className="bg-gray-700 border-gray-600 text-white"
+                    placeholder="Your answer"
+                    required
+                  />
+                </div>
+              </>
+            )}
 
-          <div className="flex justify-end space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={loading}
-              className="border-gray-600 text-gray-300 hover:bg-gray-700"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {loading ? 'Processing...' : mode === 'setup' ? 'Save Questions' : 'Verify'}
-            </Button>
-          </div>
-        </form>
+            <div className="flex justify-end space-x-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
+                disabled={loading}
+                className="border-gray-600 text-gray-300 hover:bg-gray-700"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {loading ? 'Processing...' : mode === 'setup' ? 'Save Questions' : 'Verify'}
+              </Button>
+            </div>
+                  </form>
       </DialogContent>
     </Dialog>
   );
