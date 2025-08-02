@@ -98,54 +98,79 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 DECLARE
-  lockout_record RECORD;
+    lockout_until timestamp with time zone;
 BEGIN
-  -- Check for active lockout
-  SELECT * INTO lockout_record 
-  FROM public.account_lockouts 
-  WHERE email = user_email 
-    AND locked_until > now() 
-  ORDER BY created_at DESC 
-  LIMIT 1;
-  
-  RETURN lockout_record IS NOT NULL;
+    -- Check if there's an active lockout period
+    SELECT account_locked_until INTO lockout_until
+    FROM profiles 
+    WHERE email = user_email;
+    
+    -- If lockout time has expired, automatically unlock the account
+    IF lockout_until IS NOT NULL AND lockout_until <= NOW() THEN
+        -- Clear the lockout and reset failed attempts
+        UPDATE profiles 
+        SET 
+            account_locked_until = NULL,
+            failed_login_count = 0
+        WHERE email = user_email;
+        
+        -- Clean up expired lockout records
+        DELETE FROM account_lockouts 
+        WHERE email = user_email AND locked_until <= NOW();
+        
+        RETURN false; -- Account is now unlocked
+    END IF;
+    
+    -- If there's a lockout time and it's still in the future, account is locked
+    IF lockout_until IS NOT NULL AND lockout_until > NOW() THEN
+        RETURN true;
+    END IF;
+    
+    -- No active lockout, account is not locked
+    RETURN false;
 END;
 $$;
 
 -- Function to lock account after failed attempts
-CREATE OR REPLACE FUNCTION public.handle_failed_login(user_email text, user_ip inet DEFAULT NULL)
+CREATE OR REPLACE FUNCTION public.handle_failed_login(user_email text, user_ip text DEFAULT NULL)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 DECLARE
-  current_attempts integer;
+  profile_exists boolean;
+  new_attempts integer;
   lockout_duration interval;
 BEGIN
-  -- Get current failed attempts
-  SELECT COALESCE(failed_login_count, 0) INTO current_attempts
-  FROM public.profiles 
-  WHERE email = user_email;
+  -- Check if profile exists
+  SELECT EXISTS(SELECT 1 FROM profiles WHERE email = user_email) INTO profile_exists;
   
-  -- Increment failed attempts
-  UPDATE public.profiles 
+  -- Create profile if it doesn't exist
+  IF NOT profile_exists THEN
+    INSERT INTO profiles (email, failed_login_count, role)
+    VALUES (user_email, 0, 'driver');
+  END IF;
+  
+  -- INCREMENT the existing value and get the NEW count
+  UPDATE profiles
   SET failed_login_count = COALESCE(failed_login_count, 0) + 1
-  WHERE email = user_email;
+  WHERE email = user_email
+  RETURNING failed_login_count INTO new_attempts;
   
-  -- Lock account if 5 or more failed attempts
-  IF current_attempts >= 4 THEN
+  -- Lock account if 5 or more failed attempts (check the NEW count)
+  IF new_attempts >= 5 THEN
     -- Progressive lockout: 15 minutes for first lockout, 1 hour for subsequent
     lockout_duration := CASE 
-      WHEN current_attempts = 4 THEN interval '15 minutes'
+      WHEN new_attempts = 5 THEN interval '15 minutes'
       ELSE interval '1 hour'
     END;
     
     -- Create lockout record
-    INSERT INTO public.account_lockouts (email, locked_until)
+    INSERT INTO account_lockouts (email, locked_until)
     VALUES (user_email, now() + lockout_duration);
     
     -- Update profile lockout
-    UPDATE public.profiles 
+    UPDATE profiles 
     SET account_locked_until = now() + lockout_duration
     WHERE email = user_email;
   END IF;
@@ -153,7 +178,7 @@ END;
 $$;
 
 -- Function to handle successful login
-CREATE OR REPLACE FUNCTION public.handle_successful_login(user_email text, user_ip inet DEFAULT NULL)
+CREATE OR REPLACE FUNCTION public.handle_successful_login(user_email text, user_ip text DEFAULT NULL)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -165,7 +190,7 @@ BEGIN
     failed_login_count = 0,
     account_locked_until = NULL,
     last_login_at = now(),
-    last_login_ip = user_ip
+    last_login_ip = user_ip::inet
   WHERE email = user_email;
   
   -- Clean up old lockout records for this user

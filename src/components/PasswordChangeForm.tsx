@@ -25,6 +25,7 @@ const PasswordChangeForm: React.FC = () => {
     newPassword: '',
     confirmPassword: ''
   });
+  const [submitAttempts, setSubmitAttempts] = useState(0);
 
   const togglePasswordVisibility = (field: keyof typeof showPasswords) => {
     setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
@@ -86,6 +87,10 @@ const PasswordChangeForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const currentAttempt = submitAttempts + 1;
+    setSubmitAttempts(currentAttempt);
+    console.log(`Password change attempt #${currentAttempt}`);
+    
     if (!canChangePassword) {
       toast({
         title: "Error",
@@ -97,6 +102,67 @@ const PasswordChangeForm: React.FC = () => {
 
     if (!isVerified) {
       setShowSecurityDialog(true);
+      return;
+    }
+
+    // Validate current password is not empty
+    if (!formData.currentPassword.trim()) {
+      toast({
+        title: "Error",
+        description: "Current password is required",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Verify current password is correct using the Edge Function
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session?.user?.email) {
+        throw new Error('No user email found');
+      }
+
+      console.log('Verifying current password for:', session.session.user.email);
+      
+      // Use the Edge Function to verify the password without affecting the session
+      const { data: verificationResult, error: verificationError } = await supabase.functions.invoke('enhanced-auth', {
+        body: {
+          email: session.session.user.email,
+          password: formData.currentPassword,
+          action: 'verify_current_password'
+        }
+      });
+
+      console.log('Password verification result:', { verificationResult, verificationError });
+
+      if (verificationError) {
+        console.log('Password verification error:', verificationError);
+        toast({
+          title: "Error",
+          description: "Failed to verify current password",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!verificationResult?.isValid) {
+        console.log('Password verification failed:', verificationResult?.error);
+        toast({
+          title: "Error",
+          description: "Current password is incorrect",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('Password verification successful - proceeding with password change');
+    } catch (error) {
+      console.error('Password verification error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to verify current password",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -173,24 +239,28 @@ const PasswordChangeForm: React.FC = () => {
         description: "Password updated successfully"
       });
 
-      // Reset form and verification state
-      setFormData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
-      setIsVerified(false);
-      checkPasswordChangeEligibility();
-    } catch (error: any) {
-      console.error('Error updating password:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update password",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
+             // Reset form and verification state
+       setFormData({
+         currentPassword: '',
+         newPassword: '',
+         confirmPassword: ''
+       });
+       setIsVerified(false);
+       setSubmitAttempts(0);
+       checkPasswordChangeEligibility();
+         } catch (error: any) {
+       console.error('Error updating password:', error);
+       toast({
+         title: "Error",
+         description: error.message || "Failed to update password",
+         variant: "destructive"
+       });
+       // Reset verification state on error so user can try again
+       setIsVerified(false);
+       setSubmitAttempts(0);
+     } finally {
+       setLoading(false);
+     }
   };
 
   const getPasswordAgeInfo = () => {
@@ -216,14 +286,6 @@ const PasswordChangeForm: React.FC = () => {
         onSuccess={() => {
           setIsVerified(true);
           setShowSecurityDialog(false);
-          // Re-submit form after successful verification
-          setTimeout(() => {
-            const form = document.querySelector('form');
-            if (form) {
-              const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
-              form.dispatchEvent(submitEvent);
-            }
-          }, 100);
         }}
         title="Verify Your Identity"
         description="Please answer your security questions to change your password"
@@ -328,15 +390,20 @@ const PasswordChangeForm: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex flex-col space-y-2">
-              <Button
-                type="submit"
-                disabled={loading || !canChangePassword}
-                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-              >
-                {loading ? 'Updating...' : canChangePassword ? 'Update Password' : 'Password Change Restricted'}
-              </Button>
-            </div>
+                         <div className="flex flex-col space-y-2">
+               {isVerified && (
+                 <div className="text-green-400 text-sm mb-2">
+                   ✓ Identity verified - you can now update your password
+                 </div>
+               )}
+               <Button
+                 type="submit"
+                 disabled={loading || !canChangePassword}
+                 className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+               >
+                 {loading ? 'Updating...' : canChangePassword ? 'Update Password' : 'Password Change Restricted'}
+               </Button>
+             </div>
           </form>
         </CardContent>
       </Card>

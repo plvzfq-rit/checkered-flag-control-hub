@@ -15,16 +15,14 @@ const LastLoginInfo: React.FC<LastLoginInfoProps> = ({
   failedLoginCount,
   showAsToast = false 
 }) => {
-  if (!lastLoginAt) return null;
+  const getTimeAgo = (loginAt: string) => {
+    const lastLogin = new Date(loginAt);
+    const now = new Date();
+    const diffMs = now.getTime() - lastLogin.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
 
-  const lastLogin = new Date(lastLoginAt);
-  const now = new Date();
-  const diffMs = now.getTime() - lastLogin.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffMinutes = Math.floor(diffMs / (1000 * 60));
-
-  const getTimeAgo = () => {
     if (diffDays > 0) {
       return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
     } else if (diffHours > 0) {
@@ -38,18 +36,29 @@ const LastLoginInfo: React.FC<LastLoginInfoProps> = ({
 
   const content = (
     <div className="flex items-center space-x-4 text-sm">
-      <div className="flex items-center space-x-2">
-        <Clock className="h-4 w-4 text-blue-400" />
-        <span className="text-gray-300">
-          Last login: {getTimeAgo()}
-        </span>
-      </div>
-      
-      {lastLoginIp && (
+      {lastLoginAt ? (
+        <>
+          <div className="flex items-center space-x-2">
+            <Clock className="h-4 w-4 text-blue-400" />
+            <span className="text-gray-300">
+              Last login: {getTimeAgo(lastLoginAt)}
+            </span>
+          </div>
+          
+          {lastLoginIp && (
+            <div className="flex items-center space-x-2">
+              <MapPin className="h-4 w-4 text-green-400" />
+              <span className="text-gray-300">
+                IP: {lastLoginIp}
+              </span>
+            </div>
+          )}
+        </>
+      ) : (
         <div className="flex items-center space-x-2">
-          <MapPin className="h-4 w-4 text-green-400" />
-          <span className="text-gray-300">
-            IP: {lastLoginIp}
+          <Clock className="h-4 w-4 text-gray-400" />
+          <span className="text-gray-400">
+            No previous login recorded
           </span>
         </div>
       )}

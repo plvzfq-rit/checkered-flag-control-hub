@@ -70,6 +70,8 @@ const Dashboard: React.FC = () => {
     }
   };
 
+
+
   const getQuickActions = () => {
     const actions = [];
 

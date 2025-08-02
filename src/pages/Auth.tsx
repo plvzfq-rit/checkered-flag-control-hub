@@ -48,40 +48,87 @@ const Auth: React.FC = () => {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      // Check if account is locked before attempting login
-      const { data: lockoutData } = await supabase.functions.invoke('enhanced-auth', {
-        body: { 
-          email, 
-          action: 'check_lockout',
-          ip: await getClientIP(),
-          userAgent: navigator.userAgent 
-        }
-      });
+    // Helper function to log input failures for sign-in
+    const logSignInInputFailure = async (failureType: string, errorMessage: string) => {
+      try {
+        await supabase
+          .from('input_failures')
+          .insert({
+            email: email,
+            failure_type: failureType,
+            error_message: errorMessage,
+            ip_address: await getClientIP(),
+            user_agent: navigator.userAgent
+          });
+      } catch (error) {
+        console.error('Failed to log sign-in input failure:', error);
+      }
+    };
 
-      if (lockoutData?.isLocked) {
+    try {
+      // Validate email format for sign-in
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        await logSignInInputFailure('email_error', 'Invalid email format during sign-in');
         toast({
-          title: "Account Locked",
-          description: "Your account is temporarily locked due to multiple failed login attempts. Please try again later.",
+          title: "Error",
+          description: "Please enter a valid email address",
           variant: "destructive",
         });
         setLoading(false);
         return;
       }
-
-      const { error } = await signIn(email, password);
-      
-      // Log the login attempt
-      await supabase.functions.invoke('enhanced-auth', {
-        body: { 
-          email, 
-          action: 'handle_login_attempt',
-          success: !error,
-          reason: error?.message,
+      // Check if account is locked before attempting login
+      const { data: lockoutData, error: lockoutError } = await supabase.functions.invoke('enhanced-auth', {
+        body: {
+          email,
+          action: 'check_lockout',
           ip: await getClientIP(),
-          userAgent: navigator.userAgent 
+          userAgent: navigator.userAgent
         }
       });
+
+      if (lockoutError) {
+        console.error('Lockout check error:', lockoutError);
+        // Continue with login attempt if we can't check lockout
+        console.log('Continuing with login attempt despite check error');
+      } else {
+        console.log('Lockout check:', lockoutData); // Debug log
+
+        // If account is locked, block login
+        if (lockoutData?.isLocked) {
+          console.log('Blocking login - account is locked'); // Debug log
+          toast({
+            title: "Account Locked",
+            description: "Your account is temporarily locked due to multiple failed login attempts. Please try again later.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Attempt to sign in
+      const { error } = await signIn(email, password);
+
+      // Log the login attempt AFTER authentication
+      try {
+        console.log('Logging login attempt:', { email, success: !error, reason: error?.message });
+        const logResult = await supabase.functions.invoke('enhanced-auth', {
+          body: {
+            email,
+            action: 'handle_login_attempt',
+            success: !error,
+            reason: error?.message,
+            ip: await getClientIP(),
+            userAgent: navigator.userAgent
+          }
+        });
+        console.log('Login attempt logged:', logResult);
+      } catch (logError) {
+        console.error('Failed to log login attempt:', logError);
+        // Don't block login if logging fails
+      }
 
       if (error) {
         toast({
@@ -103,6 +150,8 @@ const Auth: React.FC = () => {
     }
   };
 
+
+
   const getClientIP = async () => {
     try {
       const response = await fetch('https://api.ipify.org?format=json');
@@ -113,23 +162,154 @@ const Auth: React.FC = () => {
     }
   };
 
+  const testResetUser = async () => {
+    try {
+      console.log('Testing reset for:', email);
+
+      const { data, error } = await supabase.functions.invoke('enhanced-auth', {
+        body: {
+          email,
+          action: 'test_reset_user'
+        }
+      });
+
+      if (error) {
+        console.error('Test reset error:', error);
+        alert(`Test reset error: ${error.message}`);
+      } else {
+        console.log('Test reset result:', data);
+        const beforeCount = data?.beforeProfile?.failed_login_count || 0;
+        const afterCount = data?.afterProfile?.failed_login_count || 0;
+        const sqlResult = data?.sqlResult;
+        alert(`Test reset completed. Before: ${beforeCount}, After: ${afterCount}. SQL Result: ${sqlResult}. Check console for details.`);
+      }
+    } catch (error) {
+      console.error('Test reset exception:', error);
+      alert(`Test reset exception: ${error.message}`);
+    }
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
+    // Test if input_failures table exists
     try {
-      // Validate lengths
+      const { data, error } = await supabase
+        .from('input_failures')
+        .select('*')
+        .limit(1);
+      
+      if (error) {
+        console.error('Input failures table test error:', error);
+      } else {
+        console.log('Input failures table exists and is accessible');
+      }
+    } catch (error) {
+      console.error('Failed to test input_failures table:', error);
+    }
+
+    // Helper function to log input failures
+    const logInputFailure = async (failureType: string, errorMessage: string) => {
+      try {
+        console.log('Attempting to log input failure:', {
+          email: email,
+          failure_type: failureType,
+          error_message: errorMessage
+        });
+        
+        const { data, error } = await supabase
+          .from('input_failures')
+          .insert({
+            email: email,
+            failure_type: failureType,
+            error_message: errorMessage,
+            ip_address: await getClientIP(),
+            user_agent: navigator.userAgent
+          });
+        
+        if (error) {
+          console.error('Supabase error logging input failure:', error);
+        } else {
+          console.log('Successfully logged input failure:', data);
+        }
+      } catch (error) {
+        console.error('Failed to log input failure:', error);
+      }
+    };
+
+    try {
+      // Validate email format
+      console.log('Validating email:', email);
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const isValidEmail = emailRegex.test(email);
+      console.log('Email validation result:', isValidEmail);
+      
+      if (!isValidEmail) {
+        console.log('Email validation failed, logging input failure...');
+        await logInputFailure('email_error', 'Invalid email format');
+        toast({
+          title: "Error",
+          description: "Please enter a valid email address",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+        
+      // Validate email length
       if (email.length < 5 || email.length > 254) {
         toast({
           title: "Invalid Email",
           description: "Email must be between 5 and 254 characters.",
           variant: "destructive",
         });
+      }
+
+      // Validate password strength
+      if (password.length < 8) {
+        await logInputFailure('password_error', 'Password too short (minimum 8 characters)');
+        toast({
+          title: "Error",
+          description: "Password must be at least 8 characters long",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Check for password complexity
+      const hasUpperCase = /[A-Z]/.test(password);
+      const hasLowerCase = /[a-z]/.test(password);
+      const hasNumbers = /\d/.test(password);
+      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+      if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {
+        await logInputFailure('password_error', 'Password does not meet complexity requirements (uppercase, lowercase, number, special character)');
+        toast({
+          title: "Error",
+          description: "Password must contain uppercase, lowercase, number, and special character",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Validate full name
+      if (!fullName.trim() || fullName.trim().length < 2) {
+        await logInputFailure('validation_error', 'Full name is required and must be at least 2 characters');
+        toast({
+          title: "Error",
+          description: "Please enter your full name (at least 2 characters)",
+          variant: "destructive",
+        });
+        setLoading(false);
         return;
       }
 
       // Validate security questions
       if (!securityQuestions.question1 || !securityQuestions.question2) {
+        await logInputFailure('validation_error', 'Both security questions must be selected');
         toast({
           title: "Error",
           description: "Please select both security questions",
@@ -140,6 +320,7 @@ const Auth: React.FC = () => {
       }
 
       if (securityQuestions.question1 === securityQuestions.question2) {
+        await logInputFailure('validation_error', 'Security questions must be different');
         toast({
           title: "Error",
           description: "Please select different security questions",
@@ -150,6 +331,7 @@ const Auth: React.FC = () => {
       }
 
       if (securityQuestions.answer1.length < 3 || securityQuestions.answer2.length < 3) {
+        await logInputFailure('validation_error', 'Security question answers must be at least 3 characters long');
         toast({
           title: "Error",
           description: "Security question answers must be at least 3 characters long",
@@ -162,6 +344,20 @@ const Auth: React.FC = () => {
       const { data, error } = await signUp(email, password, fullName);
       if (error) {
         console.log(error);
+        
+        // Log the sign-up error
+        let failureType = 'validation_error';
+        let errorMessage = error.message;
+        
+        // Categorize the error type
+        if (error.message.includes('email') || error.message.includes('Email')) {
+          failureType = 'email_error';
+        } else if (error.message.includes('password') || error.message.includes('Password')) {
+          failureType = 'password_error';
+        }
+        
+        await logInputFailure(failureType, errorMessage);
+        
         toast({
           title: "Registration Error",
           description: error.message,
@@ -193,7 +389,7 @@ const Auth: React.FC = () => {
           title: "Registration Complete!",
           description: "Welcome to the team! Check your email to confirm your account.",
         });
-        
+
         // Reset form
         setEmail('');
         setPassword('');
@@ -207,6 +403,21 @@ const Auth: React.FC = () => {
       }
     } catch (error) {
       console.error('Sign up error:', error);
+      
+      // Log unexpected errors
+      try {
+        await supabase
+          .from('input_failures')
+          .insert({
+            email: email,
+            failure_type: 'validation_error',
+            error_message: error instanceof Error ? error.message : 'Unknown error during sign up',
+            ip_address: await getClientIP(),
+            user_agent: navigator.userAgent
+          });
+      } catch (logError) {
+        console.error('Failed to log unexpected error:', logError);
+      }
     } finally {
       setLoading(false);
     }
@@ -227,14 +438,14 @@ const Auth: React.FC = () => {
             Enter the pit lane - Authentication required
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-gray-700">
               <TabsTrigger value="signin" className="text-gray-300">Sign In</TabsTrigger>
               <TabsTrigger value="signup" className="text-gray-300">Sign Up</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
@@ -249,7 +460,7 @@ const Auth: React.FC = () => {
                     className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="signin-password" className="text-gray-300">Password</Label>
                   <Input
@@ -262,7 +473,7 @@ const Auth: React.FC = () => {
                     className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                   />
                 </div>
-                
+
                 <Button
                   type="submit"
                   className="w-full bg-red-600 hover:bg-red-700 text-white"
@@ -270,9 +481,20 @@ const Auth: React.FC = () => {
                 >
                   {loading ? 'Starting Engine...' : 'Enter Pit Lane'}
                 </Button>
+                {/**/}
+                {/* <Button */}
+                {/*   type="button" */}
+                {/*   onClick={testResetUser} */}
+                {/*   className="w-full bg-orange-600 hover:bg-orange-700 text-white" */}
+                {/*   disabled={!email} */}
+                {/* > */}
+                {/*   Test Reset User */}
+                {/* </Button> */}
+
+
               </form>
             </TabsContent>
-            
+
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
@@ -287,12 +509,12 @@ const Auth: React.FC = () => {
                     className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="signup-email" className="text-gray-300">Email</Label>
                   <Input
                     id="signup-email"
-                    type="email"
+                    type="text"
                     placeholder="driver@f1team.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -300,7 +522,7 @@ const Auth: React.FC = () => {
                     className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="signup-password" className="text-gray-300">Password</Label>
                   <Input
@@ -313,14 +535,14 @@ const Auth: React.FC = () => {
                     className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label className="text-gray-300 flex items-center">
                     <HelpCircle className="h-4 w-4 mr-2" />
                     Security Question 1
                   </Label>
-                  <Select 
-                    value={securityQuestions.question1} 
+                  <Select
+                    value={securityQuestions.question1}
                     onValueChange={(value) => setSecurityQuestions(prev => ({ ...prev, question1: value }))}
                   >
                     <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
@@ -354,8 +576,8 @@ const Auth: React.FC = () => {
                     <HelpCircle className="h-4 w-4 mr-2" />
                     Security Question 2
                   </Label>
-                  <Select 
-                    value={securityQuestions.question2} 
+                  <Select
+                    value={securityQuestions.question2}
                     onValueChange={(value) => setSecurityQuestions(prev => ({ ...prev, question2: value }))}
                   >
                     <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
@@ -383,12 +605,12 @@ const Auth: React.FC = () => {
                     minLength={3}
                   />
                 </div>
-                
+
                 <div className="flex items-start space-x-2 text-sm text-yellow-400">
                   <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                   <p>New drivers start with Driver role. Contact your Team Principal for role upgrades.</p>
                 </div>
-                
+
                 <Button
                   type="submit"
                   className="w-full bg-green-600 hover:bg-green-700 text-white"
