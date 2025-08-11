@@ -57,7 +57,7 @@ const PasswordChangeForm: React.FC = () => {
         setPasswordLastChanged(profile.password_changed_at);
       }
     } catch (error) {
-      console.error('Error checking password eligibility:', error);
+
     }
   };
 
@@ -79,8 +79,7 @@ const PasswordChangeForm: React.FC = () => {
       
       return !passwordHistory?.some(record => record.password_hash === newPasswordHash);
     } catch (error) {
-      console.error('Error checking password history:', error);
-      return true; // Allow change if check fails
+      return false; // Do not allow change if check fails
     }
   };
 
@@ -89,7 +88,6 @@ const PasswordChangeForm: React.FC = () => {
     
     const currentAttempt = submitAttempts + 1;
     setSubmitAttempts(currentAttempt);
-    console.log(`Password change attempt #${currentAttempt}`);
     
     if (!canChangePassword) {
       toast({
@@ -121,8 +119,6 @@ const PasswordChangeForm: React.FC = () => {
       if (!session.session?.user?.email) {
         throw new Error('No user email found');
       }
-
-      console.log('Verifying current password for:', session.session.user.email);
       
       // Use the Edge Function to verify the password without affecting the session
       const { data: verificationResult, error: verificationError } = await supabase.functions.invoke('enhanced-auth', {
@@ -133,10 +129,7 @@ const PasswordChangeForm: React.FC = () => {
         }
       });
 
-      console.log('Password verification result:', { verificationResult, verificationError });
-
       if (verificationError) {
-        console.log('Password verification error:', verificationError);
         toast({
           title: "Error",
           description: "Failed to verify current password",
@@ -146,7 +139,6 @@ const PasswordChangeForm: React.FC = () => {
       }
 
       if (!verificationResult?.isValid) {
-        console.log('Password verification failed:', verificationResult?.error);
         toast({
           title: "Error",
           description: "Current password is incorrect",
@@ -155,9 +147,7 @@ const PasswordChangeForm: React.FC = () => {
         return;
       }
 
-      console.log('Password verification successful - proceeding with password change');
     } catch (error) {
-      console.error('Password verification error:', error);
       toast({
         title: "Error",
         description: "Failed to verify current password",
@@ -249,7 +239,6 @@ const PasswordChangeForm: React.FC = () => {
        setSubmitAttempts(0);
        checkPasswordChangeEligibility();
          } catch (error: any) {
-       console.error('Error updating password:', error);
        toast({
          title: "Error",
          description: error.message || "Failed to update password",

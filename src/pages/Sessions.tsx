@@ -95,7 +95,6 @@ const Sessions: React.FC = () => {
 
       fetchSessions();
     } catch (error) {
-      console.error('Error deleting session:', error);
       toast({
         title: "Error",
         description: "Failed to delete session",
