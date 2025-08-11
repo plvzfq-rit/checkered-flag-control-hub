@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import validator from 'validator';
+import bcrypt from 'bcrypt';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -303,7 +304,8 @@ const Auth: React.FC = () => {
         });
       } else if (data.user) {
         // Store initial password in password history
-        const passwordHash = btoa(password);
+        const saltRounds = 10;
+        const passwordHash = await bcrypt.hash(password, saltRounds);
         await supabase
           .from('password_history')
           .insert({
@@ -312,15 +314,14 @@ const Auth: React.FC = () => {
           });
 
         // Save security questions
-        const hashAnswer = (answer: string) => btoa(answer.toLowerCase().trim());
         await supabase
           .from('security_questions')
           .insert({
             user_id: data.user.id,
             question_1: securityQuestions.question1,
-            answer_1_hash: hashAnswer(securityQuestions.answer1),
+            answer_1_hash: await bcrypt.hash(securityQuestions.answer1, saltRounds),
             question_2: securityQuestions.question2,
-            answer_2_hash: hashAnswer(securityQuestions.answer2)
+            answer_2_hash: await bcrypt.hash(securityQuestions.answer2, saltRounds)
           });
 
         toast({

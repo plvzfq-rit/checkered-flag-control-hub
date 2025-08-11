@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import bcrypt from 'bcrypt';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -47,9 +48,9 @@ const PasswordResetForm: React.FC<PasswordResetFormProps> = ({ email, onSuccess 
       }
 
       // Verify answers (simple hash comparison for demo)
-      const hashAnswer = (answer: string) => btoa(answer.toLowerCase().trim());
-      const answer1Hash = hashAnswer(formData.answer1);
-      const answer2Hash = hashAnswer(formData.answer2);
+      const saltRounds = 10;
+      const answer1Hash = await bcrypt.hash(formData.answer1.trim(), saltRounds);
+      const answer2Hash = await bcrypt.hash(formData.answer2.trim(), saltRounds);
 
       if (answer1Hash !== questionsData.answer_1_hash || answer2Hash !== questionsData.answer_2_hash) {
         toast({
@@ -67,7 +68,6 @@ const PasswordResetForm: React.FC<PasswordResetFormProps> = ({ email, onSuccess 
       });
 
     } catch (error: any) {
-      console.error('Error verifying security questions:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to verify security questions",
@@ -120,7 +120,6 @@ const PasswordResetForm: React.FC<PasswordResetFormProps> = ({ email, onSuccess 
 
       if (onSuccess) onSuccess();
     } catch (error: any) {
-      console.error('Error resetting password:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to reset password",
@@ -140,7 +139,7 @@ const PasswordResetForm: React.FC<PasswordResetFormProps> = ({ email, onSuccess 
         question_2: "In what city were you born?"
       });
     } catch (error) {
-      console.error('Error loading security questions:', error);
+
     }
   };
 

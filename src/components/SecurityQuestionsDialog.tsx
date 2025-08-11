@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import bcrypt from 'bcrypt';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -72,7 +73,7 @@ const SecurityQuestionsDialog: React.FC<SecurityQuestionsDialogProps> = ({
         setQuestions(securityData);
       }
     } catch (error) {
-      console.error('Error loading security questions:', error);
+
     }
   };
 
@@ -106,16 +107,16 @@ const SecurityQuestionsDialog: React.FC<SecurityQuestionsDialogProps> = ({
           return;
         }
 
-        const hashAnswer = (answer: string) => btoa(answer.toLowerCase().trim());
+        const saltRounds = 10;
 
         const { error } = await supabase
           .from('security_questions')
           .upsert({
             user_id: currentUserId,
             question_1: formData.question1,
-            answer_1_hash: hashAnswer(formData.answer1),
+            answer_1_hash: await bcrypt.hash(formData.answer1.trim(), saltRounds),
             question_2: formData.question2,
-            answer_2_hash: hashAnswer(formData.answer2)
+            answer_2_hash: await bcrypt.hash(formData.answer2.trim(), saltRounds)
           });
 
         if (error) throw error;
@@ -130,8 +131,6 @@ const SecurityQuestionsDialog: React.FC<SecurityQuestionsDialogProps> = ({
           throw new Error('Security questions not loaded');
         }
 
-        const hashAnswer = (answer: string) => btoa(answer.toLowerCase().trim());
-
         const { data: securityData } = await supabase
           .from('security_questions')
           .select('answer_1_hash, answer_2_hash')
@@ -142,8 +141,9 @@ const SecurityQuestionsDialog: React.FC<SecurityQuestionsDialogProps> = ({
           throw new Error('Security questions not found');
         }
 
-        const answer1Hash = hashAnswer(formData.answer1);
-        const answer2Hash = hashAnswer(formData.answer2);
+        const saltRounds = 10;
+        const answer1Hash = await bcrypt.hash(formData.answer1.trim(), saltRounds);
+        const answer2Hash = await bcrypt.hash(formData.answer2.trim(), saltRounds);
 
         if (answer1Hash !== securityData.answer_1_hash || answer2Hash !== securityData.answer_2_hash) {
           throw new Error('Security question answers are incorrect');
@@ -158,7 +158,6 @@ const SecurityQuestionsDialog: React.FC<SecurityQuestionsDialogProps> = ({
       onSuccess();
       onClose();
     } catch (error: any) {
-      console.error('Error with security questions:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to process security questions",

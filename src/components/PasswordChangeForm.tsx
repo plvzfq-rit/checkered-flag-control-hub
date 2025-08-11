@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import bcrypt from 'bcrypt';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -74,10 +75,13 @@ const PasswordChangeForm: React.FC = () => {
         .order('created_at', { ascending: false })
         .limit(3);
 
-      // Simple hash for comparison (in production, use proper bcrypt)
-      const newPasswordHash = btoa(newPassword);
+      // Bcrypt
+      for (const record of passwordHistory) {
+        const match = await bcrypt.compare(newPassword, record.password_hash);
+        if (match) return false; // New password is too similar
+      }
       
-      return !passwordHistory?.some(record => record.password_hash === newPasswordHash);
+      return true;
     } catch (error) {
       return false; // Do not allow change if check fails
     }
@@ -203,7 +207,8 @@ const PasswordChangeForm: React.FC = () => {
       }
 
       // Store old password hash in history
-      const oldPasswordHash = btoa(formData.currentPassword);
+      const saltRounds = 10;
+      const oldPasswordHash = await bcrypt.hash(formData.currentPassword, saltRounds);
       await supabase
         .from('password_history')
         .insert({

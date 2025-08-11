@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import bcrypt from 'bcrypt';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -71,16 +72,16 @@ const SecurityQuestions: React.FC<SecurityQuestionsProps> = ({ onComplete, isReq
       }
 
       // Hash the answers (simple hash for demo - in production use bcrypt)
-      const hashAnswer = (answer: string) => btoa(answer.toLowerCase().trim());
+      const saltRounds = 10;
 
       const { error } = await supabase
         .from('security_questions')
         .upsert({
           user_id: session.session.user.id,
           question_1: formData.question1,
-          answer_1_hash: hashAnswer(formData.answer1),
+          answer_1_hash: await bcrypt.hash(formData.answer1.trim(), saltRounds),
           question_2: formData.question2,
-          answer_2_hash: hashAnswer(formData.answer2)
+          answer_2_hash: await bcrypt.hash(formData.answer2.trim(), saltRounds)
         });
 
       if (error) throw error;
@@ -92,7 +93,6 @@ const SecurityQuestions: React.FC<SecurityQuestionsProps> = ({ onComplete, isReq
 
       if (onComplete) onComplete();
     } catch (error: any) {
-      console.error('Error saving security questions:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to save security questions",
