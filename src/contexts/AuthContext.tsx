@@ -62,8 +62,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', userId)
         .single();
 
-      // console.log(data)
-
       if (error) throw error;
       setProfile({
         id: data.id,
@@ -81,7 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         team_full_name: data.teams?.full_name ?? null,
       });
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      
     }
   };
 

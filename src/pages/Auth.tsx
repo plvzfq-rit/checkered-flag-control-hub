@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import validator from 'validator';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,14 +62,13 @@ const Auth: React.FC = () => {
             user_agent: navigator.userAgent
           });
       } catch (error) {
-        console.error('Failed to log sign-in input failure:', error);
+
       }
     };
 
     try {
       // Validate email format for sign-in
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
+      if (!validator.isEmail(email)) {
         await logSignInInputFailure('email_error', 'Invalid email format during sign-in');
         toast({
           title: "Error",
@@ -88,32 +88,22 @@ const Auth: React.FC = () => {
         }
       });
 
-      if (lockoutError) {
-        console.error('Lockout check error:', lockoutError);
-        // Continue with login attempt if we can't check lockout
-        console.log('Continuing with login attempt despite check error');
-      } else {
-        console.log('Lockout check:', lockoutData); // Debug log
-
-        // If account is locked, block login
-        if (lockoutData?.isLocked) {
-          console.log('Blocking login - account is locked'); // Debug log
+      // If account is locked or can't verify if locked out, block login
+        if (lockoutError || lockoutData?.isLocked) {
           toast({
-            title: "Account Locked",
-            description: "Your account is temporarily locked due to multiple failed login attempts. Please try again later.",
+            title: "Unable to Login",
+            description: "We're unable to complete your login right now. Please try again later.",
             variant: "destructive",
           });
           setLoading(false);
           return;
         }
-      }
 
       // Attempt to sign in
       const { error } = await signIn(email, password);
 
       // Log the login attempt AFTER authentication
       try {
-        console.log('Logging login attempt:', { email, success: !error, reason: error?.message });
         const logResult = await supabase.functions.invoke('enhanced-auth', {
           body: {
             email,
@@ -124,9 +114,7 @@ const Auth: React.FC = () => {
             userAgent: navigator.userAgent
           }
         });
-        console.log('Login attempt logged:', logResult);
       } catch (logError) {
-        console.error('Failed to log login attempt:', logError);
         // Don't block login if logging fails
       }
 
@@ -144,7 +132,7 @@ const Auth: React.FC = () => {
         navigate('/');
       }
     } catch (error) {
-      console.error('Sign in error:', error);
+
     } finally {
       setLoading(false);
     }
@@ -162,33 +150,6 @@ const Auth: React.FC = () => {
     }
   };
 
-  const testResetUser = async () => {
-    try {
-      console.log('Testing reset for:', email);
-
-      const { data, error } = await supabase.functions.invoke('enhanced-auth', {
-        body: {
-          email,
-          action: 'test_reset_user'
-        }
-      });
-
-      if (error) {
-        console.error('Test reset error:', error);
-        alert(`Test reset error: ${error.message}`);
-      } else {
-        console.log('Test reset result:', data);
-        const beforeCount = data?.beforeProfile?.failed_login_count || 0;
-        const afterCount = data?.afterProfile?.failed_login_count || 0;
-        const sqlResult = data?.sqlResult;
-        alert(`Test reset completed. Before: ${beforeCount}, After: ${afterCount}. SQL Result: ${sqlResult}. Check console for details.`);
-      }
-    } catch (error) {
-      console.error('Test reset exception:', error);
-      alert(`Test reset exception: ${error.message}`);
-    }
-  };
-
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -199,25 +160,13 @@ const Auth: React.FC = () => {
         .from('input_failures')
         .select('*')
         .limit(1);
-      
-      if (error) {
-        console.error('Input failures table test error:', error);
-      } else {
-        console.log('Input failures table exists and is accessible');
-      }
     } catch (error) {
-      console.error('Failed to test input_failures table:', error);
+
     }
 
     // Helper function to log input failures
     const logInputFailure = async (failureType: string, errorMessage: string) => {
       try {
-        console.log('Attempting to log input failure:', {
-          email: email,
-          failure_type: failureType,
-          error_message: errorMessage
-        });
-        
         const { data, error } = await supabase
           .from('input_failures')
           .insert({
@@ -227,26 +176,16 @@ const Auth: React.FC = () => {
             ip_address: await getClientIP(),
             user_agent: navigator.userAgent
           });
-        
-        if (error) {
-          console.error('Supabase error logging input failure:', error);
-        } else {
-          console.log('Successfully logged input failure:', data);
-        }
       } catch (error) {
-        console.error('Failed to log input failure:', error);
+
       }
     };
 
     try {
       // Validate email format
-      console.log('Validating email:', email);
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const isValidEmail = emailRegex.test(email);
-      console.log('Email validation result:', isValidEmail);
+      const isValidEmail = validator.isEmail(email);
       
       if (!isValidEmail) {
-        console.log('Email validation failed, logging input failure...');
         await logInputFailure('email_error', 'Invalid email format');
         toast({
           title: "Error",
@@ -343,7 +282,6 @@ const Auth: React.FC = () => {
 
       const { data, error } = await signUp(email, password, fullName);
       if (error) {
-        console.log(error);
         
         // Log the sign-up error
         let failureType = 'validation_error';
@@ -402,7 +340,6 @@ const Auth: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error('Sign up error:', error);
       
       // Log unexpected errors
       try {
@@ -416,7 +353,7 @@ const Auth: React.FC = () => {
             user_agent: navigator.userAgent
           });
       } catch (logError) {
-        console.error('Failed to log unexpected error:', logError);
+
       }
     } finally {
       setLoading(false);

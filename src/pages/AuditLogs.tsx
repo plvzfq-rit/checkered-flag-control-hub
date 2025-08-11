@@ -87,7 +87,6 @@ const AuditLogs: React.FC = () => {
         fetchInputFailures()
       ]);
     } catch (error) {
-      console.error('Error fetching logs:', error);
       toast({
         title: "Error",
         description: "Failed to fetch logs",
@@ -135,7 +134,6 @@ const AuditLogs: React.FC = () => {
       
       setLogs(filteredData);
     } catch (error) {
-      console.error('Error fetching audit logs:', error);
       throw error;
     }
   };
@@ -151,7 +149,6 @@ const AuditLogs: React.FC = () => {
       if (error) throw error;
       setLoginAttempts(data || []);
     } catch (error) {
-      console.error('Error fetching login attempts:', error);
       throw error;
     }
   };
@@ -167,7 +164,6 @@ const AuditLogs: React.FC = () => {
       if (error) throw error;
       setAccountLockouts(data || []);
     } catch (error) {
-      console.error('Error fetching account lockouts:', error);
       throw error;
     }
   };
@@ -189,7 +185,6 @@ const AuditLogs: React.FC = () => {
       if (error) throw error;
       setAccessFailures(data || []);
     } catch (error) {
-      console.error('Error fetching access failures:', error);
       throw error;
     }
   };
@@ -205,7 +200,6 @@ const AuditLogs: React.FC = () => {
       if (error) throw error;
       setInputFailures(data || []);
     } catch (error) {
-      console.error('Error fetching input failures:', error);
       throw error;
     }
   };
