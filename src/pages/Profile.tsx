@@ -43,7 +43,7 @@ const Profile: React.FC = () => {
         description: "Profile updated successfully"
       });
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error('Error updating profile.');
       toast({
         title: "Error",
         description: "Failed to update profile",
@@ -180,8 +180,8 @@ const Profile: React.FC = () => {
         failedLoginCount={profile.failed_login_count || 0}
       />
 
-      
-      
+
+
       <PasswordChangeForm />
     </div>
   );

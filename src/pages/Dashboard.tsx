@@ -6,13 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Plus, 
-  Clock, 
-  Flag, 
-  Users, 
-  BarChart3, 
-  Settings, 
+import {
+  Plus,
+  Clock,
+  Flag,
+  Users,
+  BarChart3,
+  Settings,
   Shield,
   Activity
 } from 'lucide-react';
@@ -66,7 +66,7 @@ const Dashboard: React.FC = () => {
         recentSessions: recentSessions || [],
       });
     } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
+      console.error('Error fetching dashboard stats.');
     }
   };
 
@@ -116,7 +116,7 @@ const Dashboard: React.FC = () => {
         color: 'bg-red-600 hover:bg-red-700',
       });
     }
-    
+
     // Audit logs for team principals and administrators
     if (['team_principal', 'administrator'].includes(profile?.role || '')) {
       actions.push({
@@ -232,8 +232,8 @@ const Dashboard: React.FC = () => {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {getQuickActions().map((action, index) => (
-            <Card 
-              key={index} 
+            <Card
+              key={index}
               className="bg-gray-800/80 border-gray-700 hover:bg-gray-700/80 transition-colors cursor-pointer"
               onClick={action.onClick}
             >

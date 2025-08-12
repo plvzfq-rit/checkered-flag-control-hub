@@ -4,10 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Users, 
-  Flag, 
-  Clock, 
+import {
+  Users,
+  Flag,
+  Clock,
   Trophy,
   User,
   Settings
@@ -53,7 +53,7 @@ const TeamOverview: React.FC = () => {
   const fetchTeamData = async () => {
     try {
       let membersQuery;
-      
+
       if (profile?.role === 'administrator') {
         // Administrators can see all users
         membersQuery = supabase
@@ -104,8 +104,8 @@ const TeamOverview: React.FC = () => {
 
       // Calculate average lap time
       const validLapTimes = sessions?.filter(s => s.lap_time).map(s => s.lap_time) || [];
-      const averageLapTime = validLapTimes.length > 0 
-        ? validLapTimes.reduce((a, b) => a + b, 0) / validLapTimes.length 
+      const averageLapTime = validLapTimes.length > 0
+        ? validLapTimes.reduce((a, b) => a + b, 0) / validLapTimes.length
         : null;
 
       setTeamStats({
@@ -115,7 +115,7 @@ const TeamOverview: React.FC = () => {
         teamMembers: members || []
       });
     } catch (error) {
-      console.error('Error fetching team data:', error);
+      console.error('Error fetching team data.');
       toast({
         title: "Error",
         description: "Failed to fetch team data",
@@ -237,8 +237,8 @@ const TeamOverview: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">
-              {teamStats.averageLapTime 
-                ? `${teamStats.averageLapTime.toFixed(3)}s` 
+              {teamStats.averageLapTime
+                ? `${teamStats.averageLapTime.toFixed(3)}s`
                 : '-'
               }
             </div>

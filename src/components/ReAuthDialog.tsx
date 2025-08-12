@@ -15,10 +15,10 @@ interface ReAuthDialogProps {
   description?: string;
 }
 
-const ReAuthDialog: React.FC<ReAuthDialogProps> = ({ 
-  isOpen, 
-  onClose, 
-  onSuccess, 
+const ReAuthDialog: React.FC<ReAuthDialogProps> = ({
+  isOpen,
+  onClose,
+  onSuccess,
   title = "Verify Your Identity",
   description = "Please enter your current password to continue"
 }) => {
@@ -55,11 +55,11 @@ const ReAuthDialog: React.FC<ReAuthDialogProps> = ({
       setPassword('');
       onSuccess();
       onClose();
-    } catch (error: any) {
-      console.error('Error verifying identity:', error);
+    } catch (error) {
+      console.error('Error verifying identity.');
       toast({
         title: "Error",
-        description: error.message || "Failed to verify identity",
+        description: "Failed to verify identity",
         variant: "destructive"
       });
     } finally {
@@ -82,7 +82,7 @@ const ReAuthDialog: React.FC<ReAuthDialogProps> = ({
           </DialogTitle>
           <p className="text-gray-400 text-sm">{description}</p>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="currentPassword" className="text-gray-300">Current Password</Label>

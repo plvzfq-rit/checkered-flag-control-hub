@@ -21,14 +21,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRoles
           .from('access_failure')
           .select('*')
           .limit(1);
-        
+
         if (error) {
-          console.error('Access failure table test error:', error);
-        } else {
-          console.log('Access failure table exists and is accessible');
+          console.error('Access failure table test error.');
         }
       } catch (error) {
-        console.error('Failed to test access_failure table:', error);
+        //console.error('Failed to test access_failure table.');
       }
     };
 
@@ -40,15 +38,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRoles
     const logAccessFailure = async (reason: string) => {
       if (user && profile) {
         try {
-          const detailedReason = requiredRoles 
+          const detailedReason = requiredRoles
             ? `${reason} - Path: ${location.pathname}, User Role: ${profile.role}, Required Roles: ${requiredRoles.join(', ')}`
             : `${reason} - Path: ${location.pathname}, User Role: ${profile.role}`;
 
-          console.log('Attempting to log access failure:', {
-            user_id: user.id,
-            reason: detailedReason,
-            path: location.pathname
-          });
+          //console.log('Attempting to log access failure:', {
+          //  user_id: user.id,
+          //  reason: detailedReason,
+          //  path: location.pathname
+          //});
 
           const { data, error } = await supabase
             .from('access_failure')
@@ -57,13 +55,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRoles
               reason: detailedReason
             });
 
-          if (error) {
-            console.error('Supabase error logging access failure:', error);
-          } else {
-            console.log('Successfully logged access failure:', data);
-          }
         } catch (error) {
-          console.error('Failed to log access failure:', error);
+          //console.error('Failed to log access failure:', error);
         }
       }
     };
@@ -83,7 +76,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRoles
         console.log(`Unauthorized access attempt detected for ${location.pathname} route`);
         logAccessFailure('Unauthorized route access attempt');
       }
-      
+
       // Check for dynamic routes (like /sessions/edit/:id)
       if (location.pathname.startsWith('/sessions/edit/')) {
         console.log(`Unauthorized access attempt detected for session edit route`);

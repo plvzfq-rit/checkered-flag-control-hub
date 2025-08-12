@@ -48,7 +48,7 @@ const SessionForm: React.FC = () => {
         .single();
 
       if (error) throw error;
-      
+
       setFormData({
         session_type: data.session_type,
         track_name: data.track_name,
@@ -62,7 +62,7 @@ const SessionForm: React.FC = () => {
         notes: data.notes || ''
       });
     } catch (error) {
-      console.error('Error fetching session:', error);
+      console.error('Error fetching session.');
       toast({
         title: "Error",
         description: "Failed to fetch session data",
@@ -83,20 +83,20 @@ const SessionForm: React.FC = () => {
 
     // Track name length check
     if (formData.track_name.trim().length > 100) {
-      toast({ 
-        title: "Invalid Track Name", 
-        description: "Track name must be under 100 characters.", 
-        variant: "destructive" 
+      toast({
+        title: "Invalid Track Name",
+        description: "Track name must be under 100 characters.",
+        variant: "destructive"
       });
       setLoading(false); return;
     }
 
     // Lap time range check
     if (isNaN(lapTime) || lapTime < 50 || lapTime > 300) {
-      toast({ 
-        title: "Invalid Lap Time", 
-        description: "Lap time must be between 50 and 300 seconds.", 
-        variant: "destructive" 
+      toast({
+        title: "Invalid Lap Time",
+        description: "Lap time must be between 50 and 300 seconds.",
+        variant: "destructive"
       });
       setLoading(false); return;
     }
@@ -121,20 +121,20 @@ const SessionForm: React.FC = () => {
 
     // Sector time sum check
     if ((sector1 + sector2 + sector3) - lapTime > 0.2) {
-      toast({ 
-        title: "Sector Mismatch", 
-        description: "Sum of sectors cannot exceed lap time.", 
-        variant: "destructive" 
+      toast({
+        title: "Sector Mismatch",
+        description: "Sum of sectors cannot exceed lap time.",
+        variant: "destructive"
       });
       setLoading(false); return;
     }
 
     // Fuel load range check
     if (isNaN(fuelLoad) || fuelLoad < 0 || fuelLoad > 110) {
-      toast({ 
-        title: "Invalid Fuel Load", 
-        description: "Fuel load must be between 0 and 110 kg.", 
-        variant: "destructive" 
+      toast({
+        title: "Invalid Fuel Load",
+        description: "Fuel load must be between 0 and 110 kg.",
+        variant: "destructive"
       });
       setLoading(false); return;
     }
@@ -189,11 +189,11 @@ const SessionForm: React.FC = () => {
 
       navigate('/sessions');
     } catch (error) {
-      console.error('Error saving session:', error);
+      console.error('Error saving session.');
       const track_name = formData.track_name
       const weather = formData.weather_conditions
       const notes = formData.notes
-      console.log({ track_name, lapTime, sector1, sector2, sector3, fuelLoad, weather, notes });
+      //console.log({ track_name, lapTime, sector1, sector2, sector3, fuelLoad, weather, notes });
       toast({
         title: "Error",
         description: `Failed to ${isEditing ? 'update' : 'create'} session`,
