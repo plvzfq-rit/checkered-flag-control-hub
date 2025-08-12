@@ -121,17 +121,17 @@ const AuditLogs: React.FC = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      
+
       let filteredData = data || [];
-      
+
       if (filter.search) {
-        filteredData = filteredData.filter(log => 
+        filteredData = filteredData.filter(log =>
           log.profiles?.full_name?.toLowerCase().includes(filter.search.toLowerCase()) ||
           log.profiles?.email?.toLowerCase().includes(filter.search.toLowerCase()) ||
           log.table_name?.toLowerCase().includes(filter.search.toLowerCase())
         );
       }
-      
+
       setLogs(filteredData);
     } catch (error) {
       throw error;
@@ -236,19 +236,19 @@ const AuditLogs: React.FC = () => {
 
   const getTableDisplayName = (tableName: string | null) => {
     if (!tableName) return 'Unknown';
-    
+
     const tableNames: { [key: string]: string } = {
       'profiles': 'Profiles',
       'race_sessions': 'Race Sessions',
       'pit_stops': 'Pit Stops'
     };
-    
+
     return tableNames[tableName] || tableName;
   };
 
   const formatJsonData = (data: any) => {
     if (!data) return null;
-    
+
     try {
       const formatted = JSON.stringify(data, null, 2);
       return formatted.length > 200 ? formatted.substring(0, 200) + '...' : formatted;
@@ -329,8 +329,8 @@ const AuditLogs: React.FC = () => {
 
             <div className="space-y-2">
               <Label htmlFor="action" className="text-gray-300">Action</Label>
-              <Select 
-                value={filter.action} 
+              <Select
+                value={filter.action}
                 onValueChange={(value) => setFilter(prev => ({ ...prev, action: value }))}
               >
                 <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
@@ -347,8 +347,8 @@ const AuditLogs: React.FC = () => {
 
             <div className="space-y-2">
               <Label htmlFor="table_name" className="text-gray-300">Table</Label>
-              <Select 
-                value={filter.table_name} 
+              <Select
+                value={filter.table_name}
                 onValueChange={(value) => setFilter(prev => ({ ...prev, table_name: value }))}
               >
                 <SelectTrigger className="bg-gray-700 border-gray-600 text-white">

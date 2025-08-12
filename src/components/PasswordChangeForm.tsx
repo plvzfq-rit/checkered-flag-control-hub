@@ -58,7 +58,7 @@ const PasswordChangeForm: React.FC = () => {
         setPasswordLastChanged(profile.password_changed_at);
       }
     } catch (error) {
-
+      console.error('Error checking password eligibility.');
     }
   };
 
@@ -88,7 +88,7 @@ const PasswordChangeForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const currentAttempt = submitAttempts + 1;
     setSubmitAttempts(currentAttempt);
     
@@ -158,7 +158,7 @@ const PasswordChangeForm: React.FC = () => {
       });
       return;
     }
-    
+
     if (formData.newPassword !== formData.confirmPassword) {
       toast({
         title: "Error",
@@ -292,22 +292,22 @@ const PasswordChangeForm: React.FC = () => {
 
   const getPasswordAgeInfo = () => {
     if (!passwordLastChanged) return null;
-    
+
     const lastChanged = new Date(passwordLastChanged);
     const now = new Date();
     const diffMs = now.getTime() - lastChanged.getTime();
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    
+
     if (diffHours < 24) {
       return `Password was changed ${diffHours} hours ago. Must wait ${24 - diffHours} more hours.`;
     }
-    
+
     return `Password was last changed ${Math.floor(diffHours / 24)} days ago.`;
   };
 
   return (
     <>
-      <SecurityQuestionsDialog 
+      <SecurityQuestionsDialog
         isOpen={showSecurityDialog}
         onClose={() => setShowSecurityDialog(false)}
         onSuccess={() => {
@@ -318,7 +318,7 @@ const PasswordChangeForm: React.FC = () => {
         description="Please answer your security questions to change your password"
         mode="verify"
       />
-      
+
       <Card className="bg-gray-800/80 border-gray-700">
         <CardHeader>
           <CardTitle className="text-white flex items-center">
@@ -417,20 +417,20 @@ const PasswordChangeForm: React.FC = () => {
               </div>
             </div>
 
-                         <div className="flex flex-col space-y-2">
-               {isVerified && (
-                 <div className="text-green-400 text-sm mb-2">
-                   ✓ Identity verified - you can now update your password
-                 </div>
-               )}
-               <Button
-                 type="submit"
-                 disabled={loading || !canChangePassword}
-                 className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-               >
-                 {loading ? 'Updating...' : canChangePassword ? 'Update Password' : 'Password Change Restricted'}
-               </Button>
-             </div>
+            <div className="flex flex-col space-y-2">
+              {isVerified && (
+                <div className="text-green-400 text-sm mb-2">
+                  ✓ Identity verified - you can now update your password
+                </div>
+              )}
+              <Button
+                type="submit"
+                disabled={loading || !canChangePassword}
+                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+              >
+                {loading ? 'Updating...' : canChangePassword ? 'Update Password' : 'Password Change Restricted'}
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>

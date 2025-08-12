@@ -21,14 +21,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRoles
           .from('access_failure')
           .select('*')
           .limit(1);
-        
+
         if (error) {
-          console.error('Access failure table test error:', error);
-        } else {
-          console.log('Access failure table exists and is accessible');
+          console.error('Access failure table test error.');
         }
       } catch (error) {
-        console.error('Failed to test access_failure table:', error);
+        //console.error('Failed to test access_failure table:', error);
       }
     };
 
@@ -40,7 +38,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRoles
     const logAccessFailure = async (reason: string) => {
       if (user && profile) {
         try {
-          const detailedReason = requiredRoles 
+          const detailedReason = requiredRoles
             ? `${reason} - Path: ${location.pathname}, User Role: ${profile.role}, Required Roles: ${requiredRoles.join(', ')}`
             : `${reason} - Path: ${location.pathname}, User Role: ${profile.role}`;
 
@@ -58,12 +56,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRoles
             });
 
           if (error) {
-            console.error('Supabase error logging access failure:', error);
+            console.error('Supabase error logging access failure.');
           } else {
             console.log('Successfully logged access failure:', data);
           }
         } catch (error) {
-          console.error('Failed to log access failure:', error);
+          console.error('Failed to log access failure.');
         }
       }
     };
@@ -83,7 +81,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRoles
         console.log(`Unauthorized access attempt detected for ${location.pathname} route`);
         logAccessFailure('Unauthorized route access attempt');
       }
-      
+
       // Check for dynamic routes (like /sessions/edit/:id)
       if (location.pathname.startsWith('/sessions/edit/')) {
         console.log(`Unauthorized access attempt detected for session edit route`);

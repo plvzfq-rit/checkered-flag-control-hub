@@ -44,7 +44,7 @@ const SecurityQuestions: React.FC<SecurityQuestionsProps> = ({ onComplete, isReq
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.question1 === formData.question2) {
       toast({
         title: "Error",
@@ -56,7 +56,7 @@ const SecurityQuestions: React.FC<SecurityQuestionsProps> = ({ onComplete, isReq
 
     if (formData.answer1.length < 3 || formData.answer2.length < 3) {
       toast({
-        title: "Error", 
+        title: "Error",
         description: "Answers must be at least 3 characters long",
         variant: "destructive"
       });
@@ -122,8 +122,8 @@ const SecurityQuestions: React.FC<SecurityQuestionsProps> = ({ onComplete, isReq
                 <HelpCircle className="h-4 w-4 mr-2" />
                 Security Question 1
               </Label>
-              <Select 
-                value={formData.question1} 
+              <Select
+                value={formData.question1}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, question1: value }))}
               >
                 <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
@@ -159,8 +159,8 @@ const SecurityQuestions: React.FC<SecurityQuestionsProps> = ({ onComplete, isReq
                 <HelpCircle className="h-4 w-4 mr-2" />
                 Security Question 2
               </Label>
-              <Select 
-                value={formData.question2} 
+              <Select
+                value={formData.question2}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, question2: value }))}
               >
                 <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
