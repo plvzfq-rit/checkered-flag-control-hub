@@ -80,7 +80,7 @@ const PasswordResetForm: React.FC<PasswordResetFormProps> = ({ email, onSuccess 
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    
     if (formData.newPassword !== formData.confirmPassword) {
       toast({
         title: "Error",
@@ -188,7 +188,7 @@ const PasswordResetForm: React.FC<PasswordResetFormProps> = ({ email, onSuccess 
           Password Reset
         </CardTitle>
         <p className="text-gray-400 text-sm">
-          {step === 'questions'
+          {step === 'questions' 
             ? 'Answer your security questions to verify your identity'
             : 'Enter your new password'
           }

@@ -70,7 +70,7 @@ const UserManagement: React.FC = () => {
       if (error) throw error;
       setUsers(data || []);
     } catch (error) {
-      console.error('Error fetching users.');
+      console.error('Error fetching users:', error);
       toast({
         title: "Error",
         description: "Failed to fetch users",
@@ -83,7 +83,7 @@ const UserManagement: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    
     try {
       const userData = {
         full_name: formData.full_name,
@@ -124,7 +124,7 @@ const UserManagement: React.FC = () => {
       setShowForm(false);
       fetchUsers();
     } catch (error) {
-      console.error('Error saving user.');
+      console.error('Error saving user:', error);
       toast({
         title: "Error",
         description: "Failed to save user",
@@ -265,9 +265,9 @@ const UserManagement: React.FC = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="role" className="text-gray-300">Role</Label>
-                  <Select
-                    value={formData.role}
-                    onValueChange={(value: 'administrator' | 'team_principal' | 'race_engineer' | 'driver') =>
+                  <Select 
+                    value={formData.role} 
+                    onValueChange={(value: 'administrator' | 'team_principal' | 'race_engineer' | 'driver') => 
                       setFormData(prev => ({ ...prev, role: value }))
                     }
                   >

@@ -196,7 +196,7 @@ const Auth: React.FC = () => {
         setLoading(false);
         return;
       }
-
+        
       // Validate email length
       if (email.length < 5 || email.length > 254) {
         toast({
@@ -286,17 +286,17 @@ const Auth: React.FC = () => {
         
         // Log the sign-up error
         let failureType = 'validation_error';
-        const errorMessage = error.message;
-
+        let errorMessage = error.message;
+        
         // Categorize the error type
         if (error.message.includes('email') || error.message.includes('Email')) {
           failureType = 'email_error';
         } else if (error.message.includes('password') || error.message.includes('Password')) {
           failureType = 'password_error';
         }
-
+        
         await logInputFailure(failureType, errorMessage);
-
+        
         toast({
           title: "Registration Error",
           description: error.message,

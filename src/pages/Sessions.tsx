@@ -66,7 +66,7 @@ const Sessions: React.FC = () => {
       if (error) throw error;
       setSessions(data || []);
     } catch (error) {
-      console.error('Error fetching sessions.');
+      console.error('Error fetching sessions:', error);
       toast({
         title: "Error",
         description: "Failed to fetch sessions",

@@ -59,7 +59,7 @@ const PitStops: React.FC = () => {
     try {
       await Promise.all([fetchPitStops(), fetchSessions()]);
     } catch (error) {
-      console.error('Error fetching data.');
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
@@ -90,7 +90,7 @@ const PitStops: React.FC = () => {
       if (error) throw error;
       setPitStops(data || []);
     } catch (error) {
-      console.error('Error fetching pit stops.');
+      console.error('Error fetching pit stops:', error);
       toast({
         title: "Error",
         description: "Failed to fetch pit stops",
@@ -114,13 +114,13 @@ const PitStops: React.FC = () => {
       if (error) throw error;
       setSessions(data || []);
     } catch (error) {
-      console.error('Error fetching sessions.');
+      console.error('Error fetching sessions:', error);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    
     try {
       const pitStopData = {
         session_id: formData.session_id,
@@ -154,7 +154,7 @@ const PitStops: React.FC = () => {
       setShowForm(false);
       fetchPitStops();
     } catch (error) {
-      console.error('Error creating pit stop.');
+      console.error('Error creating pit stop:', error);
       toast({
         title: "Error",
         description: "Failed to record pit stop",
@@ -181,7 +181,7 @@ const PitStops: React.FC = () => {
 
       fetchPitStops();
     } catch (error) {
-      console.error('Error deleting pit stop.');
+      console.error('Error deleting pit stop:', error);
       toast({
         title: "Error",
         description: "Failed to delete pit stop",
@@ -244,8 +244,8 @@ const PitStops: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="session_id" className="text-gray-300">Race Session</Label>
-                  <Select
-                    value={formData.session_id}
+                  <Select 
+                    value={formData.session_id} 
                     onValueChange={(value) => setFormData(prev => ({ ...prev, session_id: value }))}
                     required
                   >
@@ -277,8 +277,8 @@ const PitStops: React.FC = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="tire_change_from" className="text-gray-300">Tire From</Label>
-                  <Select
-                    value={formData.tire_change_from}
+                  <Select 
+                    value={formData.tire_change_from} 
                     onValueChange={(value) => setFormData(prev => ({ ...prev, tire_change_from: value }))}
                   >
                     <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
@@ -296,8 +296,8 @@ const PitStops: React.FC = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="tire_change_to" className="text-gray-300">Tire To</Label>
-                  <Select
-                    value={formData.tire_change_to}
+                  <Select 
+                    value={formData.tire_change_to} 
                     onValueChange={(value) => setFormData(prev => ({ ...prev, tire_change_to: value }))}
                   >
                     <SelectTrigger className="bg-gray-700 border-gray-600 text-white">

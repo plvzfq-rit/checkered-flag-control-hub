@@ -35,7 +35,7 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
         // console.log(teamsData);
         setTeams(teamsData);
       } catch (error) {
-        console.error('Error loading teams.');
+        console.error('Error loading teams:', error);
         toast({
           title: "Error",
           description: "Failed to load teams",

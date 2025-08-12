@@ -19,7 +19,7 @@ export const fetchTeams = async (): Promise<Team[]> => {
   // console.log(error)
 
   if (error) {
-    console.error('Error fetching teams.');
+    console.error('Error fetching teams:', error);
     throw error;
   }
 
@@ -34,7 +34,7 @@ export const fetchTeamById = async (teamId: string): Promise<Team | null> => {
     .single();
 
   if (error) {
-    console.error('Error fetching team.');
+    console.error('Error fetching team:', error);
     return null;
   }
 
