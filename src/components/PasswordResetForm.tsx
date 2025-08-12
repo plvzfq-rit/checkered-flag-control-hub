@@ -99,12 +99,45 @@ const PasswordResetForm: React.FC<PasswordResetFormProps> = ({ email, onSuccess 
       return;
     }
 
-    if (formData.newPassword.length > 64) {
+    const getClientIP = async () => {
+    try {
+      const response = await fetch('https://api.ipify.org?format=json');
+      const data = await response.json();
+      return data.ip;
+    } catch {
+      return '0.0.0.0';
+    }
+  };
+
+    const logInputFailure = async (failureType: string, errorMessage: string) => {
+          try {
+            const { data, error } = await supabase
+              .from('input_failures')
+              .insert({
+                email: email,
+                failure_type: failureType,
+                error_message: errorMessage,
+                ip_address: await getClientIP(),
+                user_agent: navigator.userAgent
+              });
+          } catch (error) {
+    
+          }
+        };
+
+    const hasUpperCase = /[A-Z]/.test(formData.newPassword);
+    const hasLowerCase = /[a-z]/.test(formData.newPassword);
+    const hasNumbers = /\d/.test(formData.newPassword);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(formData.newPassword);
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {
+      await logInputFailure('password_error', 'Password does not meet complexity requirements (uppercase, lowercase, number, special character)');
       toast({
         title: "Error",
-        description: "Password cannot be longer than 64 characters",
-        variant: "destructive"
+        description: "Password must contain uppercase, lowercase, number, and special character",
+        variant: "destructive",
       });
+      setLoading(false);
       return;
     }
 

@@ -67,13 +67,12 @@ const PasswordChangeForm: React.FC = () => {
       const { data: session } = await supabase.auth.getSession();
       if (!session.session?.user) return false;
 
-      // Get last 3 password hashes
+      // Get last password hashes
       const { data: passwordHistory } = await supabase
         .from('password_history')
         .select('password_hash')
         .eq('user_id', session.session.user.id)
-        .order('created_at', { ascending: false })
-        .limit(3);
+        .order('created_at', { ascending: false });
 
       // Bcrypt
       for (const record of passwordHistory) {
@@ -178,21 +177,55 @@ const PasswordChangeForm: React.FC = () => {
       return;
     }
 
-    if (formData.newPassword.length > 64) {
-      toast({
-        title: "Error",
-        description: "Password cannot be longer than 64 characters",
-        variant: "destructive"
-      });
-      return;
-    }
+    const getClientIP = async () => {
+        try {
+          const response = await fetch('https://api.ipify.org?format=json');
+          const data = await response.json();
+          return data.ip;
+        } catch {
+          return '0.0.0.0';
+        }
+      };
+    
+        const logInputFailure = async (failureType: string, errorMessage: string) => {
+              try {
+                const { data, error } = await supabase
+                  .from('input_failures')
+                  .insert({
+                    email: email,
+                    failure_type: failureType,
+                    error_message: errorMessage,
+                    ip_address: await getClientIP(),
+                    user_agent: navigator.userAgent
+                  });
+              } catch (error) {
+        
+              }
+            };
+    
+        const hasUpperCase = /[A-Z]/.test(formData.newPassword);
+        const hasLowerCase = /[a-z]/.test(formData.newPassword);
+        const hasNumbers = /\d/.test(formData.newPassword);
+        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(formData.newPassword);
+    
+        if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {
+          await logInputFailure('password_error', 'Password does not meet complexity requirements (uppercase, lowercase, number, special character)');
+          toast({
+            title: "Error",
+            description: "Password must contain uppercase, lowercase, number, and special character",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+
 
     // Check password history
     const isNewPassword = await checkPasswordHistory(formData.newPassword);
     if (!isNewPassword) {
       toast({
         title: "Error",
-        description: "Cannot reuse one of your last 3 passwords",
+        description: "Cannot reuse passwords",
         variant: "destructive"
       });
       return;
